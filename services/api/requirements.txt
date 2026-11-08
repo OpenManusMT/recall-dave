@@ -1,0 +1,8 @@
+# Runtime dependencies for the optional Recall AI adapter service.
+# Exact pins; update deliberately and re-run the test suite.
+fastapi==0.162.2
+pydantic==2.14.3
+httpx==0.28.1
+uvicorn==0.54.0
+# Required by FastAPI/Starlette for multipart parsing; used directly by recall_api.audio.
+python-multipart==0.0.33

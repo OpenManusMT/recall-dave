@@ -1,0 +1,18 @@
+[project]
+name = "recall-api"
+version = "0.1.0"
+description = "Optional server-side AI/transcription adapter for Recall. Disabled for remote providers by default."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+filterwarnings = [
+    "error::DeprecationWarning:recall_api.*",
+    # Starlette 1.x prefers the separate `httpx2` package for its TestClient; the
+    # service itself uses `httpx` (pinned) and the httpx-backed TestClient still works.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
