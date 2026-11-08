@@ -1,0 +1,163 @@
+{
+  "project": "Read & Remember",
+  "pack_version": "0.2",
+  "created_utc": "2026-09-26T22:03:39.590377+00:00",
+  "file_count": 31,
+  "files": [
+    {
+      "path": "00-START-HERE.md",
+      "bytes": 1757,
+      "sha256": "64caf6568ca052e56eb84307a7519e34b0ade4982fbbaec8bc371e7b531809f1"
+    },
+    {
+      "path": "01-CODEX-ONE-SHOT-PROMPT.md",
+      "bytes": 12816,
+      "sha256": "02dded30ae9b07d3c267b8165342b81bdcec04ecb610fd0ccce2fd7becd4a947"
+    },
+    {
+      "path": "02-PRODUCT-SPEC.md",
+      "bytes": 2267,
+      "sha256": "f67ea0489d7d197eedfc3566b0a7f439d40cf673a3681b4e3d75df8b09e38b08"
+    },
+    {
+      "path": "03-ADAPTIVE-ALGORITHM.md",
+      "bytes": 2520,
+      "sha256": "f95dad4cc60829e2bb909c20cb596d00d7767453f260b55a8e6889b04730b2f1"
+    },
+    {
+      "path": "04-AI-CONTRACTS.md",
+      "bytes": 2097,
+      "sha256": "938d94425480847cb603acad06bd3ba407df627501e64a5468cb02043047dc1f"
+    },
+    {
+      "path": "05-IPHONE-WINDOWS-BUILD.md",
+      "bytes": 2600,
+      "sha256": "fb194c993e2889bc802ccef3736a6cc8705ad6ff1f46b808a903125bc927370b"
+    },
+    {
+      "path": "06-PRIVACY-SAFETY.md",
+      "bytes": 1281,
+      "sha256": "cfa165ceb9e5dc15309b8fefe2c66c839922ae0032d90fca556205f1f0bb5d82"
+    },
+    {
+      "path": "07-TEST-AND-RELEASE-GATES.md",
+      "bytes": 1488,
+      "sha256": "db0c830adb3c8d3a485573c120a1f99fec4dd6a86959221bd5ead2b6da96a263"
+    },
+    {
+      "path": "08-MILESTONE-LOOP.md",
+      "bytes": 1886,
+      "sha256": "1f94823422f7fed9a710c41c879e3dbc0201d258e00576db00efa321e2899510"
+    },
+    {
+      "path": "09-RESEARCH-NOTES.md",
+      "bytes": 1544,
+      "sha256": "5f04e3ee271463dcb89a4c1c4045a0b4203345998677aa3a86b01f8c4c763286"
+    },
+    {
+      "path": "10-DATA-MODEL.md",
+      "bytes": 1282,
+      "sha256": "af1b2c00d0c8b23f9a7efde366e6349e3a83b2c0bf549197bc9d61da2d8f4ede"
+    },
+    {
+      "path": "11-UI-FLOWS.md",
+      "bytes": 1055,
+      "sha256": "2d4336a9a6542066694e2ad480bb0bcdcfe42da5bb0c754d325b5da590717ede"
+    },
+    {
+      "path": "12-RUNBOOK.md",
+      "bytes": 1111,
+      "sha256": "10443e8caf2a7e881e45d8dcd04ef8b398c5538f3ac20ead6bae5904af1a3ce1"
+    },
+    {
+      "path": "A001-harness/BASELINE_REPORT.json",
+      "bytes": 12228,
+      "sha256": "a5a71f6918dc24b0915f0d1fdd33925a14d4edb82a3ac99f486260b164dd7419"
+    },
+    {
+      "path": "A001-harness/ORACLE_REPORT.json",
+      "bytes": 867,
+      "sha256": "92a9d20cfa224ebbf0c3e2cfac3f1ecb8a1b0b00998d69d7daa48e416ac566ad"
+    },
+    {
+      "path": "A001-harness/README.md",
+      "bytes": 3690,
+      "sha256": "25b5649bf72d9658e4e747ebe60482e0350c14013128585014b73ea859cadf0d"
+    },
+    {
+      "path": "A001-harness/SCHEMA.md",
+      "bytes": 1443,
+      "sha256": "db24bdc8b3b85383b96d808a93701dfd5be6ce0450a433b506508527fa66e324"
+    },
+    {
+      "path": "A001-harness/baseline_predictions.jsonl",
+      "bytes": 79220,
+      "sha256": "6af1d8e63b8fb986475e31e232495720f29b7a9941dd8512c13902d986264ca0"
+    },
+    {
+      "path": "A001-harness/baseline_scorer.py",
+      "bytes": 1266,
+      "sha256": "669b02e1ecbb4ae0f82c2f8b1f25aeb390889cbf0ab9d88d4fbb7ccb7f075614"
+    },
+    {
+      "path": "A001-harness/candidate_scorer.py",
+      "bytes": 472,
+      "sha256": "2061954d7ec6bf99efdc04e2dbfd39ff4c29055ac594419c2435d94f86310607"
+    },
+    {
+      "path": "A001-harness/cases.jsonl",
+      "bytes": 104293,
+      "sha256": "d5a06677d4056a142c0d51e635fb69ecd6900a962403779023142111bb963075"
+    },
+    {
+      "path": "A001-harness/evaluate.py",
+      "bytes": 5541,
+      "sha256": "c284956244a6d1d98a2877d381876169299e84d05fb761b1d6d51ef0e1028cd9"
+    },
+    {
+      "path": "A001-harness/make_oracle_predictions.py",
+      "bytes": 1065,
+      "sha256": "1182ca7bd26ea4571a7c0d64ed51cff35deb512e971ceed7ef92737ded32a247"
+    },
+    {
+      "path": "A001-harness/oracle_predictions.jsonl",
+      "bytes": 92600,
+      "sha256": "3f0e30b7da22d0cb783eb4d6689c39a8a4e94a23bdb0332509dfe9a9ef4e10ab"
+    },
+    {
+      "path": "A001-harness/run_scorer.py",
+      "bytes": 1097,
+      "sha256": "1991bb55b935ba924f6b4684e8928cbea8a628287c483f3fb82e1f827389ed75"
+    },
+    {
+      "path": "A001-harness/tests/test_harness.py",
+      "bytes": 2096,
+      "sha256": "cbda008c052243059062464abc3bb355f844b557f73939152a5ec68e191441d3"
+    },
+    {
+      "path": "CODEX-PROMPT.txt",
+      "bytes": 12816,
+      "sha256": "02dded30ae9b07d3c267b8165342b81bdcec04ecb610fd0ccce2fd7becd4a947"
+    },
+    {
+      "path": "EMAIL-COPY.txt",
+      "bytes": 735,
+      "sha256": "09330c7c927eea03937310edfc556348a7e9eab40ce283d50e66475bdf883aa9"
+    },
+    {
+      "path": "assets/read_remember_app_showcase.png",
+      "bytes": 1376497,
+      "sha256": "6f14e99368776f3b7fab3bbeddd9748b6bfbffcae23032a99aac348d3faa951f"
+    },
+    {
+      "path": "starter-reference/core-types.ts",
+      "bytes": 814,
+      "sha256": "5976cf8f9e1534e5b82763e98d4a5133de81fac88b30c3170a9ee7eb3a85f7a5"
+    },
+    {
+      "path": "starter-reference/scheduler_mapping.py",
+      "bytes": 558,
+      "sha256": "82adac685a7ce19cc422e22724fc9dd1e1ded5e451ba1baea1dcb4e42c55ac00"
+    }
+  ]
+}

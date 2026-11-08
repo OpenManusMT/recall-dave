@@ -1,0 +1,17 @@
+{
+  "name": "@recall/content",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Original, edited reading passages and fresh-text probes bundled with Recall (works offline).",
+  "license": "CC-BY-4.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@recall/core": "1.0.0"
+  }
+}

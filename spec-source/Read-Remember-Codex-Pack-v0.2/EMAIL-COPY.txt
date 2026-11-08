@@ -1,0 +1,18 @@
+Subject: Read & Remember — Codex development pack v0.2
+
+I’ve attached the complete Read & Remember development hand-off.
+
+It includes:
+- the 100-case A001 recall-scoring harness;
+- the Codex one-shot build prompt;
+- adaptive algorithm and AI contracts;
+- iPhone/Windows no-Mac build route using Expo/EAS;
+- privacy and safety rules;
+- milestone and release gates;
+- data model and UI flows;
+- app concept image;
+- research notes and Windows runbook.
+
+Important: the AI scheduler is deliberately required to remain in shadow mode until the scoring gates pass consistently. The app is a reading/recall aid, not a schizophrenia-monitoring or diagnostic tool.
+
+Start with 00-START-HERE.md, then give Codex 01-CODEX-ONE-SHOT-PROMPT.md.

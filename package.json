@@ -1,0 +1,41 @@
+{
+  "name": "recall-dave",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Recall (Read & Remember): a calm, local-first reading and remembering aid. PWA + Expo native app sharing one tested core.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/core",
+    "packages/content",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @recall/web",
+    "build": "npm run build -w @recall/web",
+    "preview": "npm run preview -w @recall/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p packages/core && tsc -p packages/content && tsc -p apps/web",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "e2e": "playwright test --trace off",
+    "a001": "node scripts/run-a001.mjs",
+    "api:test": "node scripts/run-api-tests.mjs",
+    "verify": "node scripts/verify.mjs",
+    "release": "node scripts/make-release.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
+  }
+}

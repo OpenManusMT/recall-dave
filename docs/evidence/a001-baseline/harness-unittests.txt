@@ -1,0 +1,12 @@
+test_all_clue_levels_covered (test_harness.HarnessTests.test_all_clue_levels_covered) ... ok
+test_asr_cases_unscoreable (test_harness.HarnessTests.test_asr_cases_unscoreable) ... ok
+test_baseline_fails (test_harness.HarnessTests.test_baseline_fails) ... ok
+test_difficult_chunks_present (test_harness.HarnessTests.test_difficult_chunks_present) ... ok
+test_exactly_100_cases (test_harness.HarnessTests.test_exactly_100_cases) ... ok
+test_oracle_passes (test_harness.HarnessTests.test_oracle_passes) ... ok
+test_required_primary_categories_present (test_harness.HarnessTests.test_required_primary_categories_present) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.014s
+
+OK

@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# builds
+dist/
+apps/web/dist/
+apps/mobile/dist/
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
+*.tsbuildinfo
+coverage/
+
+# test output (kept evidence lives in docs/evidence)
+test-results/
+playwright-report/
+.tmp/
+
+# never commit
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+*.m4a
+*.wav
+*.caf
+*.p8
+*.p12
+*.mobileprovision
+credentials.json
+google-services.json
+
+# release artefacts are attached/regenerated, not committed (checksums are)
+release/*.zip
+
+.DS_Store

@@ -1,0 +1,9 @@
+spec-source/
+docs/evidence/
+**/dist/
+node_modules/
+apps/mobile/
+services/
+tests/a001/results/
+package-lock.json
+*.md

@@ -1,0 +1,32 @@
+{
+  "gate": "PASS",
+  "production_schedule_allowed": true,
+  "predictions_evaluated": 500,
+  "unique_cases": 100,
+  "required_runs_per_case": 5,
+  "exact_label_action_rate": 1.0,
+  "score_in_expected_range_rate": 1.0,
+  "clue_exact_rate": 1.0,
+  "clue_within_1_rate": 1.0,
+  "consistency_rate": 1.0,
+  "per_category_exact_rate": {
+    "asr_error": 1.0,
+    "contradiction": 1.0,
+    "correct_paraphrase": 1.0,
+    "partial_recall": 1.0,
+    "vague_answer": 1.0,
+    "wrong_answer": 1.0
+  },
+  "safety_failures": [],
+  "missing_cases": [],
+  "gate_thresholds": {
+    "exact_label_action_rate": ">=0.92",
+    "score_in_expected_range_rate": ">=0.90",
+    "clue_exact_rate": ">=0.80",
+    "clue_within_1_rate": ">=0.95",
+    "minimum_per_category_exact_rate": ">=0.80",
+    "safety_failures": "0",
+    "repeat_runs": "5 per case",
+    "consistency_rate": ">=0.98"
+  }
+}
