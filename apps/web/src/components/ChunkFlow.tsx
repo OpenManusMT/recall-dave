@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   cueText,
   initialLadder,
@@ -66,7 +66,8 @@ export function ChunkFlow(props: ChunkFlowProps) {
   const ideas = kind === 'review' ? props.ideas : chunk.ideas;
   const startedAt = useRef(now().toISOString());
   const attemptId = useRef(newId('att'));
-  const resumable = props.draft && props.draft.chunkId === chunk.id && props.draft.phase !== 'reading';
+  const resumable =
+    props.draft && props.draft.chunkId === chunk.id && props.draft.phase !== 'reading';
   const [phase, setPhase] = useState<Phase>(kind === 'review' || resumable ? 'recall' : 'reading');
   const [recallText, setRecallText] = useState(resumable ? (props.draft?.recallText ?? '') : '');
   const [peeking, setPeeking] = useState(false);
@@ -101,7 +102,8 @@ export function ChunkFlow(props: ChunkFlowProps) {
     return () => clearTimeout(t);
   }, [phase, recallText, store, sessionId, doc.id, chunk.id, kind, now]);
 
-  const strategy = (s: Parameters<typeof logStrategy>[2]) => void logStrategy(store, sessionId, s, chunk.id, now()).catch(() => undefined);
+  const strategy = (s: Parameters<typeof logStrategy>[2]) =>
+    void logStrategy(store, sessionId, s, chunk.id, now()).catch(() => undefined);
 
   const toggleSpeak = () => {
     if (speaking) {
@@ -143,7 +145,9 @@ export function ChunkFlow(props: ChunkFlowProps) {
   };
 
   const questionResult = (): QuestionResult | null =>
-    question && answer !== null ? { questionId: question.id, chosenIndex: answer, correct: answer === question.answerIndex } : null;
+    question && answer !== null
+      ? { questionId: question.id, chosenIndex: answer, correct: answer === question.answerIndex }
+      : null;
 
   async function save(finalLadders: LadderState[]) {
     setPhase('saving');
@@ -242,7 +246,12 @@ export function ChunkFlow(props: ChunkFlowProps) {
             </button>
           ) : null}
           {props.onTooMuch && kind !== 'probe' ? (
-            <button type="button" className="btn" onClick={() => void doTooMuch()} disabled={tooMuch}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void doTooMuch()}
+              disabled={tooMuch}
+            >
               <Icon name="shrink" />
               Too much text
             </button>
@@ -251,18 +260,31 @@ export function ChunkFlow(props: ChunkFlowProps) {
         {explain ? <MainPoints id="explain-panel" ideas={chunk.ideas} /> : null}
         {readMode ? (
           <>
-            {question ? <QuestionBlock question={question} answer={answer} onAnswer={setAnswer} textVisible /> : null}
-            <button type="button" className="btn primary block large" onClick={() => void save([])} disabled={Boolean(question) && answer === null}>
+            {question ? (
+              <QuestionBlock question={question} answer={answer} onAnswer={setAnswer} textVisible />
+            ) : null}
+            <button
+              type="button"
+              className="btn primary block large"
+              onClick={() => void save([])}
+              disabled={Boolean(question) && answer === null}
+            >
               {question && answer === null ? 'Answer the question to continue' : 'Next'}
             </button>
           </>
         ) : (
-          <button type="button" className="btn primary block large" onClick={() => setPhase('recall')}>
+          <button
+            type="button"
+            className="btn primary block large"
+            onClick={() => setPhase('recall')}
+          >
             <Icon name="eyeOff" /> I’ve read it — hide the text
           </button>
         )}
         {kind === 'probe' ? (
-          <p className="small muted">Fresh-text check: no hints before you try. Take as long as you like.</p>
+          <p className="small muted">
+            Fresh-text check: no hints before you try. Take as long as you like.
+          </p>
         ) : null}
       </section>
     );
@@ -279,11 +301,15 @@ export function ChunkFlow(props: ChunkFlowProps) {
         </h1>
         {isReview ? (
           <p className="muted">
-            Before looking: write the {ideas.length === 1 ? 'main point' : `${ideas.length} main points`} you remember from
-            “{doc.title}”. There is no time limit.
+            Before looking: write the{' '}
+            {ideas.length === 1 ? 'main point' : `${ideas.length} main points`} you remember from “
+            {doc.title}”. There is no time limit.
           </p>
         ) : (
-          <p className="muted">Write the main ideas in your own words. Spelling and grammar don’t matter. There is no time limit.</p>
+          <p className="muted">
+            Write the main ideas in your own words. Spelling and grammar don’t matter. There is no
+            time limit.
+          </p>
         )}
         <div className="stack">
           <label htmlFor="recall-box">Your words</label>
@@ -304,7 +330,8 @@ export function ChunkFlow(props: ChunkFlowProps) {
         </div>
         <div className="stack">
           <button type="button" className="btn primary block large" onClick={afterRecall}>
-            <Icon name="check" /> {recallText.trim() ? 'Check my answer' : 'I can’t remember — help me'}
+            <Icon name="check" />{' '}
+            {recallText.trim() ? 'Check my answer' : 'I can’t remember — help me'}
           </button>
           <button
             type="button"
@@ -318,7 +345,8 @@ export function ChunkFlow(props: ChunkFlowProps) {
               setPeeking((v) => !v);
             }}
           >
-            <Icon name={peeking ? 'eyeOff' : 'eye'} /> {peeking ? 'Hide the text again' : 'Show text'}
+            <Icon name={peeking ? 'eyeOff' : 'eye'} />{' '}
+            {peeking ? 'Hide the text again' : 'Show text'}
           </button>
         </div>
         {peeking ? (
@@ -348,7 +376,11 @@ export function ChunkFlow(props: ChunkFlowProps) {
         >
           {answered ? 'Continue' : 'Choose an answer to continue'}
         </button>
-        <button type="button" className="btn ghost" onClick={() => (ideas.length > 0 ? setPhase('check') : void save([]))}>
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={() => (ideas.length > 0 ? setPhase('check') : void save([]))}
+        >
           Skip this question
         </button>
       </section>
@@ -368,16 +400,33 @@ export function ChunkFlow(props: ChunkFlowProps) {
         </h1>
         <details className="card">
           <summary>What you wrote</summary>
-          <p style={{ whiteSpace: 'pre-wrap' }}>{recallText.trim() || '(nothing yet — that’s fine)'}</p>
+          <p style={{ whiteSpace: 'pre-wrap' }}>
+            {recallText.trim() || '(nothing yet — that’s fine)'}
+          </p>
         </details>
-        <IdeaLadder idea={idea} state={state} chunkText={chunk.text} recallText={recallText} onAction={(a) => dispatch(k, a)} />
+        <IdeaLadder
+          idea={idea}
+          state={state}
+          chunkText={chunk.text}
+          recallText={recallText}
+          onAction={(a) => dispatch(k, a)}
+        />
         {state.phase === 'done' ? (
           k < ideas.length - 1 ? (
-            <button type="button" className="btn primary block large" onClick={() => setIdeaIndex(k + 1)}>
+            <button
+              type="button"
+              className="btn primary block large"
+              onClick={() => setIdeaIndex(k + 1)}
+            >
               Next point
             </button>
           ) : (
-            <button type="button" className="btn primary block large" onClick={() => void save(ladders)} disabled={!allChecked}>
+            <button
+              type="button"
+              className="btn primary block large"
+              onClick={() => void save(ladders)}
+              disabled={!allChecked}
+            >
               Save and continue
             </button>
           )
@@ -482,7 +531,9 @@ function QuestionBlock({
       {answered ? (
         <div className={`card ${answer === question.answerIndex ? 'good' : 'note'}`} role="status">
           <p style={{ fontWeight: 600 }}>
-            {answer === question.answerIndex ? 'That’s right.' : `Not quite — the answer is “${question.options[question.answerIndex]}”.`}
+            {answer === question.answerIndex
+              ? 'That’s right.'
+              : `Not quite — the answer is “${question.options[question.answerIndex]}”.`}
           </p>
           <div className="quote">{question.explanationSpan}</div>
         </div>
@@ -525,19 +576,37 @@ function IdeaLadder({
           <span className="cue-label">{LEVEL_LABEL[1]}</span>
           {idea.cues.structural}
         </div>
-        {settings.experimentalScorer ? <ExperimentalHints idea={idea} recallText={recallText} /> : null}
+        {settings.experimentalScorer ? (
+          <ExperimentalHints idea={idea} recallText={recallText} />
+        ) : null}
         <p style={{ fontWeight: 600 }}>Is this point in what you wrote?</p>
         <div className="stack">
-          <button type="button" className="btn good block" onClick={() => onAction({ type: 'covered', answer: 'yes' })}>
+          <button
+            type="button"
+            className="btn good block"
+            onClick={() => onAction({ type: 'covered', answer: 'yes' })}
+          >
             Yes, I wrote about it
           </button>
-          <button type="button" className="btn secondary block" onClick={() => onAction({ type: 'covered', answer: 'partly' })}>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => onAction({ type: 'covered', answer: 'partly' })}
+          >
             Partly
           </button>
-          <button type="button" className="btn secondary block" onClick={() => onAction({ type: 'covered', answer: 'no' })}>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => onAction({ type: 'covered', answer: 'no' })}
+          >
             No, or I’m not sure — give me a hint
           </button>
-          <button type="button" className="btn ghost" onClick={() => onAction({ type: 'remember_now' })}>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => onAction({ type: 'remember_now' })}
+          >
             I remember it now — show me
           </button>
         </div>
@@ -554,10 +623,18 @@ function IdeaLadder({
         </div>
         <p className="muted">Take your time. Think about it, then choose.</p>
         <div className="stack">
-          <button type="button" className="btn good block" onClick={() => onAction({ type: 'remember_now' })}>
+          <button
+            type="button"
+            className="btn good block"
+            onClick={() => onAction({ type: 'remember_now' })}
+          >
             I remember it now — show me
           </button>
-          <button type="button" className="btn secondary block" onClick={() => onAction({ type: 'another_hint' })}>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => onAction({ type: 'another_hint' })}
+          >
             {state.cueLevel >= 3 ? 'Show me the sentence' : 'Another hint'}
           </button>
           <button type="button" className="btn ghost" onClick={() => onAction({ type: 'reread' })}>
@@ -572,15 +649,31 @@ function IdeaLadder({
     return (
       <div className="stack" aria-live="polite">
         {revealed}
-        <p style={{ fontWeight: 600 }}>{state.claimed && state.creditLevel === 0 ? 'Does this match what you wrote?' : 'Was that what you remembered?'}</p>
+        <p style={{ fontWeight: 600 }}>
+          {state.claimed && state.creditLevel === 0
+            ? 'Does this match what you wrote?'
+            : 'Was that what you remembered?'}
+        </p>
         <div className="stack">
-          <button type="button" className="btn good block" onClick={() => onAction({ type: 'match', answer: 'yes' })}>
+          <button
+            type="button"
+            className="btn good block"
+            onClick={() => onAction({ type: 'match', answer: 'yes' })}
+          >
             Yes, it matches
           </button>
-          <button type="button" className="btn secondary block" onClick={() => onAction({ type: 'match', answer: 'partly' })}>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => onAction({ type: 'match', answer: 'partly' })}
+          >
             Partly
           </button>
-          <button type="button" className="btn secondary block" onClick={() => onAction({ type: 'match', answer: 'no' })}>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => onAction({ type: 'match', answer: 'no' })}
+          >
             No, mine was different
           </button>
         </div>
@@ -598,13 +691,23 @@ function IdeaLadder({
           </div>
         ) : null}
         {revealed}
-        <p className="muted">Read it slowly. It will come up again in a review, which helps it stick.</p>
+        <p className="muted">
+          Read it slowly. It will come up again in a review, which helps it stick.
+        </p>
         <div className="stack">
-          <button type="button" className="btn primary block" onClick={() => onAction({ type: 'continue' })}>
+          <button
+            type="button"
+            className="btn primary block"
+            onClick={() => onAction({ type: 'continue' })}
+          >
             Got it
           </button>
           {state.cueLevel < 5 ? (
-            <button type="button" className="btn ghost" onClick={() => onAction({ type: 'reread' })}>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => onAction({ type: 'reread' })}
+            >
               Read the whole part again
             </button>
           ) : null}
@@ -642,12 +745,18 @@ function DoneSummary({
   actions: React.ReactNode;
 }) {
   const own = ladders.filter((l) => l.outcome === 'correct' && l.recordedLevel === 0).length;
-  const withHelp = ladders.filter((l) => l.outcome !== null && !(l.outcome === 'correct' && l.recordedLevel === 0)).length;
+  const withHelp = ladders.filter(
+    (l) => l.outcome !== null && !(l.outcome === 'correct' && l.recordedLevel === 0),
+  ).length;
   const message = useMemo(() => {
     if (kind === 'read') return 'Part finished.';
     if (ideas.length === 0) return 'Saved.';
-    if (own === ideas.length) return ideas.length === 1 ? 'You remembered the main point on your own.' : `You remembered all ${ideas.length} points on your own.`;
-    if (own > 0) return `You remembered ${own} of ${ideas.length} points on your own. The others will come back in a review.`;
+    if (own === ideas.length)
+      return ideas.length === 1
+        ? 'You remembered the main point on your own.'
+        : `You remembered all ${ideas.length} points on your own.`;
+    if (own > 0)
+      return `You remembered ${own} of ${ideas.length} points on your own. The others will come back in a review.`;
     return 'Well done for working through it. These points will come back in a review, which is how they stick.';
   }, [kind, ideas.length, own]);
   return (
@@ -655,11 +764,20 @@ function DoneSummary({
       <h1 id="done-heading" ref={headingRef} tabIndex={-1}>
         {message}
       </h1>
-      {kind !== 'read' && withHelp > 0 && own > 0 ? <p className="muted">Hints are there to help — using them is part of practice.</p> : null}
-      {question && answer !== null ? (
-        <p className="muted">Question: {answer === question.answerIndex ? 'answered correctly.' : 'now you know the answer.'}</p>
+      {kind !== 'read' && withHelp > 0 && own > 0 ? (
+        <p className="muted">Hints are there to help — using them is part of practice.</p>
       ) : null}
-      {kind === 'learn' ? <p className="muted">These points are saved. You’ll see them again tomorrow under Reviews.</p> : null}
+      {question && answer !== null ? (
+        <p className="muted">
+          Question:{' '}
+          {answer === question.answerIndex ? 'answered correctly.' : 'now you know the answer.'}
+        </p>
+      ) : null}
+      {kind === 'learn' ? (
+        <p className="muted">
+          These points are saved. You’ll see them again tomorrow under Reviews.
+        </p>
+      ) : null}
       <div className="stack">{actions}</div>
     </section>
   );

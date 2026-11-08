@@ -10,7 +10,11 @@ export function parseHash(hash: string): Route {
   const raw = hash.replace(/^#/, '') || '/';
   const [p, q] = raw.split('?');
   const path = (p || '/').startsWith('/') ? p || '/' : `/${p}`;
-  return { path, segments: path.split('/').filter(Boolean).map(decodeURIComponent), query: new URLSearchParams(q ?? '') };
+  return {
+    path,
+    segments: path.split('/').filter(Boolean).map(decodeURIComponent),
+    query: new URLSearchParams(q ?? ''),
+  };
 }
 
 export function useRoute(): Route {

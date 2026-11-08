@@ -25,10 +25,23 @@ export const putOp = <C extends CollectionName>(collection: C, value: RecordMap[
   value: value as { id: string },
 });
 
-export const deleteOp = (collection: CollectionName, id: string): StoreOp => ({ type: 'delete', collection, id });
+export const deleteOp = (collection: CollectionName, id: string): StoreOp => ({
+  type: 'delete',
+  collection,
+  id,
+});
 
 export function emptySnapshot(): Snapshot {
-  return { settings: [], documents: [], chunks: [], memory: [], attempts: [], reviewLog: [], sessions: [], strategy: [] };
+  return {
+    settings: [],
+    documents: [],
+    chunks: [],
+    memory: [],
+    attempts: [],
+    reviewLog: [],
+    sessions: [],
+    strategy: [],
+  };
 }
 
 export async function readSnapshot(store: RecallStore): Promise<Snapshot> {

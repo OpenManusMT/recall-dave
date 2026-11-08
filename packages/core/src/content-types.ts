@@ -57,14 +57,7 @@ export interface AuthoredSection {
 }
 
 export type PassageSubject =
-  | 'food'
-  | 'nature'
-  | 'travel'
-  | 'history'
-  | 'home'
-  | 'practical'
-  | 'science'
-  | 'places';
+  'food' | 'nature' | 'travel' | 'history' | 'home' | 'practical' | 'science' | 'places';
 
 export interface AuthoredPassage {
   /** Stable id, e.g. "p01-bread". Probes start with "probe-". */

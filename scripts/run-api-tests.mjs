@@ -20,6 +20,7 @@ if (!existsSync(venvPy)) {
   const py = win ? 'python' : 'python3';
   console.log(`Creating virtual environment with ${py} …`);
   if (run(py, ['-m', 'venv', '.venv']) !== 0) process.exit(1);
-  if (run(venvPy, ['-m', 'pip', 'install', '-q', '-r', 'requirements-dev.txt']) !== 0) process.exit(1);
+  if (run(venvPy, ['-m', 'pip', 'install', '-q', '-r', 'requirements-dev.txt']) !== 0)
+    process.exit(1);
 }
 process.exit(run(venvPy, ['-m', 'pytest', '-q', ...process.argv.slice(2)]));

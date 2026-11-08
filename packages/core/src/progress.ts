@@ -5,7 +5,14 @@
  * Practised material and fresh-text probes are always reported separately, so
  * improvement on rehearsed material is never presented as transfer.
  */
-import type { ChunkAttempt, ClueLevel, IdeaOutcome, ISODate, ReviewLogEntry, Settings } from './types';
+import type {
+  ChunkAttempt,
+  ClueLevel,
+  IdeaOutcome,
+  ISODate,
+  ReviewLogEntry,
+  Settings,
+} from './types';
 import { currentChunkTarget } from './settings';
 import { startOfLocalDay } from './dates';
 
@@ -33,14 +40,37 @@ export interface Metric {
   lowerIsBetter?: boolean;
 }
 
-function metric(key: string, label: string, values: number[], explanation: string, lowerIsBetter = false): Metric {
+function metric(
+  key: string,
+  label: string,
+  values: number[],
+  explanation: string,
+  lowerIsBetter = false,
+): Metric {
   const n = values.length;
-  if (n === 0) return { key, label, value: null, n, display: 'Not measured yet', explanation, lowerIsBetter };
+  if (n === 0)
+    return { key, label, value: null, n, display: 'Not measured yet', explanation, lowerIsBetter };
   const mean = values.reduce((a, b) => a + b, 0) / n;
   if (n < MIN_SAMPLES) {
-    return { key, label, value: null, n, display: `Too few so far (${n})`, explanation, lowerIsBetter };
+    return {
+      key,
+      label,
+      value: null,
+      n,
+      display: `Too few so far (${n})`,
+      explanation,
+      lowerIsBetter,
+    };
   }
-  return { key, label, value: mean, n, display: `${Math.round(mean * 100)}%`, explanation, lowerIsBetter };
+  return {
+    key,
+    label,
+    value: mean,
+    n,
+    display: `${Math.round(mean * 100)}%`,
+    explanation,
+    lowerIsBetter,
+  };
 }
 
 export interface WeekPoint {
@@ -90,18 +120,27 @@ export function computeInsights(
   const practisedAll = attempts.filter((a) => a.kind === 'learn' || a.kind === 'review');
   const probes = attempts.filter((a) => a.kind === 'probe' && a.firstExposure);
 
-  const immediate = practisedLearn.flatMap((a) => a.ideas.map((i) => independentCredit(i.outcome, i.clueLevel)));
+  const immediate = practisedLearn.flatMap((a) =>
+    a.ideas.map((i) => independentCredit(i.outcome, i.clueLevel)),
+  );
   const reviews = reviewLog.filter((r) => r.kind === 'review' && r.elapsedDays !== null);
   const inWindow = (r: ReviewLogEntry, [lo, hi]: [number, number]) =>
     (r.elapsedDays as number) >= lo && (r.elapsedDays as number) < hi;
-  const nextDay = reviews.filter((r) => inWindow(r, NEXT_DAY_WINDOW)).map((r) => independentCredit(r.outcome, r.clueLevel));
+  const nextDay = reviews
+    .filter((r) => inWindow(r, NEXT_DAY_WINDOW))
+    .map((r) => independentCredit(r.outcome, r.clueLevel));
   const week = reviews
-    .filter((r) => (r.elapsedDays as number) >= WEEK_WINDOW[0] && (r.elapsedDays as number) <= WEEK_WINDOW[1])
+    .filter(
+      (r) =>
+        (r.elapsedDays as number) >= WEEK_WINDOW[0] && (r.elapsedDays as number) <= WEEK_WINDOW[1],
+    )
     .map((r) => independentCredit(r.outcome, r.clueLevel));
   const clue = practisedAll.flatMap((a) => a.ideas.map((i) => (i.clueLevel >= 1 ? 1 : 0)));
   const comp = practisedAll.filter((a) => a.question).map((a) => (a.question?.correct ? 1 : 0));
 
-  const freshImmediate = probes.flatMap((a) => a.ideas.map((i) => independentCredit(i.outcome, i.clueLevel)));
+  const freshImmediate = probes.flatMap((a) =>
+    a.ideas.map((i) => independentCredit(i.outcome, i.clueLevel)),
+  );
   const freshComp = probes.filter((a) => a.question).map((a) => (a.question?.correct ? 1 : 0));
   const freshClue = probes.flatMap((a) => a.ideas.map((i) => (i.clueLevel >= 1 ? 1 : 0)));
 
@@ -117,7 +156,9 @@ export function computeInsights(
       const t = Date.parse(iso);
       return t >= start.getTime() && t < end.getTime();
     };
-    const p = reviews.filter((r) => inWeek(r.at) && (r.elapsedDays as number) >= NEXT_DAY_WINDOW[0]);
+    const p = reviews.filter(
+      (r) => inWeek(r.at) && (r.elapsedDays as number) >= NEXT_DAY_WINDOW[0],
+    );
     const f = probes.filter((a) => inWeek(a.completedAt)).flatMap((a) => a.ideas);
     const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
     weekly.push({

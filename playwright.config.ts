@@ -11,7 +11,9 @@ import { existsSync, readdirSync } from 'node:fs';
 const browsersPath = process.env.PLAYWRIGHT_BROWSERS_PATH;
 const hasWebkit =
   process.env.RECALL_E2E_WEBKIT === '1' ||
-  (browsersPath ? existsSync(browsersPath) && readdirSync(browsersPath).some((d) => d.startsWith('webkit')) : false);
+  (browsersPath
+    ? existsSync(browsersPath) && readdirSync(browsersPath).some((d) => d.startsWith('webkit'))
+    : false);
 
 const mobile = { isMobile: true, hasTouch: true, deviceScaleFactor: 1 } as const;
 
@@ -37,10 +39,25 @@ export default defineConfig({
     timeout: 60_000,
   },
   projects: [
-    { name: 'chromium-375x667', use: { browserName: 'chromium', viewport: { width: 375, height: 667 }, ...mobile } },
-    { name: 'chromium-390x844', use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, ...mobile } },
+    {
+      name: 'chromium-375x667',
+      use: { browserName: 'chromium', viewport: { width: 375, height: 667 }, ...mobile },
+    },
+    {
+      name: 'chromium-390x844',
+      use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, ...mobile },
+    },
     ...(hasWebkit
-      ? [{ name: 'webkit-390x844', use: { browserName: 'webkit' as const, viewport: { width: 390, height: 844 }, ...mobile } }]
+      ? [
+          {
+            name: 'webkit-390x844',
+            use: {
+              browserName: 'webkit' as const,
+              viewport: { width: 390, height: 844 },
+              ...mobile,
+            },
+          },
+        ]
       : []),
   ],
 });

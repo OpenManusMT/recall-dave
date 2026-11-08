@@ -40,7 +40,10 @@ export function normaliseSettings(raw: Partial<Settings> | undefined | null): Se
   const s = { ...DEFAULT_SETTINGS, ...(raw ?? {}) } as Settings;
   const num = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
   const minChunkWords = Math.min(80, Math.max(20, Math.round(num(s.minChunkWords, 40))));
-  const maxChunkWords = Math.min(300, Math.max(minChunkWords + 20, Math.round(num(s.maxChunkWords, 180))));
+  const maxChunkWords = Math.min(
+    300,
+    Math.max(minChunkWords + 20, Math.round(num(s.maxChunkWords, 180))),
+  );
   const clampWords = (v: number) => Math.min(maxChunkWords, Math.max(minChunkWords, Math.round(v)));
   return {
     id: 'settings',
@@ -59,7 +62,8 @@ export function normaliseSettings(raw: Partial<Settings> | undefined | null): Se
     askQuestions: s.askQuestions !== false,
     schedulerMode: 'shadow',
     experimentalScorer: Boolean(s.experimentalScorer),
-    lastAdaptationSessionId: typeof s.lastAdaptationSessionId === 'string' ? s.lastAdaptationSessionId : null,
+    lastAdaptationSessionId:
+      typeof s.lastAdaptationSessionId === 'string' ? s.lastAdaptationSessionId : null,
   };
 }
 

@@ -17,7 +17,9 @@ const passage: AuthoredPassage = {
         {
           id: 's1-i1',
           text: 'Yeast feeds on sugars in the flour and gives off carbon dioxide gas.',
-          sourceSpans: ['it feeds on the sugars in the flour and gives off a gas called carbon dioxide'],
+          sourceSpans: [
+            'it feeds on the sugars in the flour and gives off a gas called carbon dioxide',
+          ],
           qualifiers: [],
           relation: 'cause_effect',
           topic: 'what the yeast does in the dough',
@@ -41,9 +43,14 @@ const passage: AuthoredPassage = {
       question: {
         id: 's1-q1',
         prompt: 'What makes the dough grow larger?',
-        options: ['Bubbles of gas made by the yeast', 'Water soaking into the flour', 'Steam from the oven'],
+        options: [
+          'Bubbles of gas made by the yeast',
+          'Water soaking into the flour',
+          'Steam from the oven',
+        ],
         answerIndex: 0,
-        explanationSpan: 'The gas forms thousands of small bubbles, and these bubbles make the dough grow larger.',
+        explanationSpan:
+          'The gas forms thousands of small bubbles, and these bubbles make the dough grow larger.',
       },
     },
     {
@@ -60,7 +67,8 @@ const passage: AuthoredPassage = {
           qualifiers: [],
           relation: 'cause_effect',
           topic: 'why kneading helps',
-          semanticCue: 'Think of the stretchy protein in wheat flour and what it does with the bubbles.',
+          semanticCue:
+            'Think of the stretchy protein in wheat flour and what it does with the bubbles.',
           clozeAnswers: ['gluten'],
         },
         {
@@ -113,7 +121,11 @@ const passage: AuthoredPassage = {
       question: {
         id: 's3-q1',
         prompt: 'What happens to the yeast in the oven?',
-        options: ['It keeps growing until the bread cools', 'It turns into gluten', 'The heat kills it'],
+        options: [
+          'It keeps growing until the bread cools',
+          'It turns into gluten',
+          'The heat kills it',
+        ],
         answerIndex: 2,
         explanationSpan: 'The heat then kills the yeast',
       },

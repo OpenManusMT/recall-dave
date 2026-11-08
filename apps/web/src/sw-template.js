@@ -20,13 +20,18 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('recall-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(
+          keys.filter((k) => k.startsWith('recall-') && k !== CACHE).map((k) => caches.delete(k)),
+        ),
+      )
       .then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data === 'recall:version' && event.source) event.source.postMessage({ type: 'recall:version', version: CACHE_VERSION });
+  if (event.data === 'recall:version' && event.source)
+    event.source.postMessage({ type: 'recall:version', version: CACHE_VERSION });
 });
 
 self.addEventListener('fetch', (event) => {
@@ -42,7 +47,9 @@ self.addEventListener('fetch', (event) => {
         .then((res) => {
           if (res.ok) {
             const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(new URL('./index.html', self.registration.scope).href, copy));
+            caches
+              .open(CACHE)
+              .then((c) => c.put(new URL('./index.html', self.registration.scope).href, copy));
           }
           return res;
         })

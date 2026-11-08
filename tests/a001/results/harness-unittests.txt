@@ -7,6 +7,6 @@ test_oracle_passes (test_harness.HarnessTests.test_oracle_passes) ... ok
 test_required_primary_categories_present (test_harness.HarnessTests.test_required_primary_categories_present) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.016s
+Ran 7 tests in 0.015s
 
 OK

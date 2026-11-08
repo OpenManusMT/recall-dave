@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { DAY0, DAY1, doChunk, openApp, skipOnboarding } from './helpers';
 
-test('core journey: read → hide → recall → check → save → review next day → survives reload', async ({ page }) => {
+test('core journey: read → hide → recall → check → save → review next day → survives reload', async ({
+  page,
+}) => {
   await openApp(page, DAY0);
   await skipOnboarding(page);
 
@@ -11,7 +13,10 @@ test('core journey: read → hide → recall → check → save → review next 
   await page.getByRole('button', { name: /Start a session/ }).click();
   await expect(page.getByRole('heading', { name: 'Read this part, then hide it' })).toBeVisible();
   await expect(page.getByText(/Part 1 of \d+/).first()).toBeVisible();
-  await doChunk(page, 'Yeast eats sugar in the flour and makes gas, bubbles make it grow.', ['own', 'hint']);
+  await doChunk(page, 'Yeast eats sugar in the flour and makes gas, bubbles make it grow.', [
+    'own',
+    'hint',
+  ]);
   await expect(page.getByText(/You’ll see them again tomorrow/)).toBeVisible();
   await page.getByRole('button', { name: 'Finish for now' }).click();
   await expect(page.getByRole('heading', { name: 'Session finished' })).toBeVisible();
@@ -26,12 +31,21 @@ test('core journey: read → hide → recall → check → save → review next 
   await openApp(page, DAY1, '#/');
   await expect(page.getByText(/2 points are ready to remember again/)).toBeVisible();
   await page.getByRole('link', { name: /Do reviews only/ }).click();
-  await expect(page.getByRole('heading', { name: 'What do you remember from this part?' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'What do you remember from this part?' }),
+  ).toBeVisible();
   // The source is hidden until asked for.
   await expect(page.getByText('Yeast is a tiny living fungus.', { exact: false })).toHaveCount(0);
-  await page.getByLabel('Your words').fill('Yeast feeds on sugar and gives off carbon dioxide, which makes bubbles.');
+  await page
+    .getByLabel('Your words')
+    .fill('Yeast feeds on sugar and gives off carbon dioxide, which makes bubbles.');
   await page.getByRole('button', { name: 'Check my answer' }).click();
-  if (await page.getByRole('heading', { name: 'A quick question' }).isVisible().catch(() => false)) {
+  if (
+    await page
+      .getByRole('heading', { name: 'A quick question' })
+      .isVisible()
+      .catch(() => false)
+  ) {
     await page.getByRole('radio').first().click();
     await page.getByRole('button', { name: 'Continue' }).click();
   }

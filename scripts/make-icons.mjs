@@ -20,8 +20,14 @@ const page = await browser.newPage();
 for (const [src, out, size] of targets) {
   const svg = readFileSync(resolve(iconDir, src), 'utf8');
   await page.setViewportSize({ width: size, height: size });
-  await page.setContent(`<html><body style="margin:0;background:transparent">${svg.replace('<svg ', `<svg width="${size}" height="${size}" `)}</body></html>`);
-  await page.screenshot({ path: resolve(iconDir, out), omitBackground: out !== 'apple-touch-icon.png', clip: { x: 0, y: 0, width: size, height: size } });
+  await page.setContent(
+    `<html><body style="margin:0;background:transparent">${svg.replace('<svg ', `<svg width="${size}" height="${size}" `)}</body></html>`,
+  );
+  await page.screenshot({
+    path: resolve(iconDir, out),
+    omitBackground: out !== 'apple-touch-icon.png',
+    clip: { x: 0, y: 0, width: size, height: size },
+  });
   console.log('wrote', out);
 }
 await browser.close();

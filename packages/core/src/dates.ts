@@ -31,8 +31,11 @@ export function daysBetween(a: ISODate, b: ISODate): number {
 export function calendarDaysBetween(a: Date, b: Date): number {
   const sa = startOfLocalDay(a);
   const sb = startOfLocalDay(b);
-  return Math.round((Date.UTC(sb.getFullYear(), sb.getMonth(), sb.getDate()) -
-    Date.UTC(sa.getFullYear(), sa.getMonth(), sa.getDate())) / DAY_MS);
+  return Math.round(
+    (Date.UTC(sb.getFullYear(), sb.getMonth(), sb.getDate()) -
+      Date.UTC(sa.getFullYear(), sa.getMonth(), sa.getDate())) /
+      DAY_MS,
+  );
 }
 
 export function toISO(d: Date): ISODate {

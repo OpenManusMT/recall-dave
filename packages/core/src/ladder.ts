@@ -91,7 +91,12 @@ export function ladderReducer(s: LadderState, a: LadderAction): LadderState {
         return { ...s, phase: 'done', outcome: 'partial', recordedLevel: s.creditLevel };
       }
       // Their version differed: the point has now been shown, which is a source reveal.
-      return { ...s, phase: 'done', outcome: 'incorrect', recordedLevel: Math.max(4, s.cueLevel) as ClueLevel };
+      return {
+        ...s,
+        phase: 'done',
+        outcome: 'incorrect',
+        recordedLevel: Math.max(4, s.cueLevel) as ClueLevel,
+      };
     }
     case 'continue':
       if (s.phase !== 'study') return s;
@@ -102,7 +107,8 @@ export function ladderReducer(s: LadderState, a: LadderAction): LadderState {
 /** Kind, non-judgemental feedback for the learner after an idea is checked. */
 export function ladderFeedback(s: LadderState): string {
   if (s.phase !== 'done' || s.outcome === null || s.recordedLevel === null) return '';
-  if (s.outcome === 'correct' && s.recordedLevel === 0) return 'You remembered this point on your own.';
+  if (s.outcome === 'correct' && s.recordedLevel === 0)
+    return 'You remembered this point on your own.';
   if (s.outcome === 'correct') return 'You remembered this point with a hint.';
   if (s.outcome === 'partial') return 'You had part of this point. It will come up again soon.';
   return 'Now you have seen this point. It will come up again in a review, which helps it stick.';

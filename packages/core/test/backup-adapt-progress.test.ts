@@ -66,7 +66,12 @@ describe('backup', () => {
     expect(parseBackup('')).toMatchObject({ ok: false });
     expect(parseBackup('{not json')).toMatchObject({ ok: false });
     expect(parseBackup(JSON.stringify({ hello: 'world' }))).toMatchObject({ ok: false });
-    const newer = { format: 'recall-backup', schemaVersion: BACKUP_SCHEMA_VERSION + 1, exportedAt: T0.toISOString(), data: {} };
+    const newer = {
+      format: 'recall-backup',
+      schemaVersion: BACKUP_SCHEMA_VERSION + 1,
+      exportedAt: T0.toISOString(),
+      data: {},
+    };
     const r = parseBackup(JSON.stringify(newer));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toMatch(/newer version/);
@@ -117,7 +122,12 @@ describe('backup', () => {
   });
 
   it('strips unknown fields (e.g. injected keys) and clamps settings', () => {
-    const b = { format: 'recall-backup', schemaVersion: 2, exportedAt: T0.toISOString(), data: { settings: [{ id: 'settings', fontScale: 50, evil: '<script>' }] } };
+    const b = {
+      format: 'recall-backup',
+      schemaVersion: 2,
+      exportedAt: T0.toISOString(),
+      data: { settings: [{ id: 'settings', fontScale: 50, evil: '<script>' }] },
+    };
     const r = parseBackup(JSON.stringify(b));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -128,12 +138,21 @@ describe('backup', () => {
 
 // --------------------------------------------------------------- adaptation
 
-function fakeHistory(nChunks: number, delayedCredit: 'all' | 'half' | 'none', compCorrect: boolean, clue: 0 | 2) {
+function fakeHistory(
+  nChunks: number,
+  delayedCredit: 'all' | 'half' | 'none',
+  compCorrect: boolean,
+  clue: 0 | 2,
+) {
   const attempts: ChunkAttempt[] = [];
   const logs: ReviewLogEntry[] = [];
   for (let k = 0; k < nChunks; k++) {
     const when = new Date(T0.getTime() + k * 3_600_000).toISOString();
-    const ideas = [0, 1].map((j) => ({ ideaId: `c${k}i${j}`, outcome: 'correct' as const, clueLevel: clue }));
+    const ideas = [0, 1].map((j) => ({
+      ideaId: `c${k}i${j}`,
+      outcome: 'correct' as const,
+      clueLevel: clue,
+    }));
     attempts.push({
       id: `a${k}`,
       sessionId: 's',
@@ -194,7 +213,9 @@ describe('chunk-size adaptation (engineering defaults, not clinical thresholds)'
   });
 
   it('holds in the 55–84% band and decreases by about 15% below 55%', () => {
-    expect(decideAdaptation({ ...fakeHistory(4, 'half', true, 0), settings }).action).toBe('decrease'); // 50%
+    expect(decideAdaptation({ ...fakeHistory(4, 'half', true, 0), settings }).action).toBe(
+      'decrease',
+    ); // 50%
     const h = fakeHistory(4, 'all', true, 2); // high recall but hint dependence high
     expect(decideAdaptation({ ...h, settings }).action).toBe('hold');
     const dec = decideAdaptation({ ...fakeHistory(4, 'none', true, 0), settings });
@@ -202,8 +223,16 @@ describe('chunk-size adaptation (engineering defaults, not clinical thresholds)'
   });
 
   it('respects the learner’s fixed size and the 40-word minimum', () => {
-    expect(decideAdaptation({ ...fakeHistory(4, 'none', true, 0), settings: { ...settings, chunkMode: 'fixed' } }).action).toBe('fixed_by_user');
-    const low = decideAdaptation({ ...fakeHistory(4, 'none', true, 0), settings: { ...settings, adaptiveChunkWords: 42 } });
+    expect(
+      decideAdaptation({
+        ...fakeHistory(4, 'none', true, 0),
+        settings: { ...settings, chunkMode: 'fixed' },
+      }).action,
+    ).toBe('fixed_by_user');
+    const low = decideAdaptation({
+      ...fakeHistory(4, 'none', true, 0),
+      settings: { ...settings, adaptiveChunkWords: 42 },
+    });
     expect(low.toWords).toBeGreaterThanOrEqual(40);
   });
 
@@ -233,8 +262,20 @@ describe('insights', () => {
 
   it('keeps practised material and fresh-text probes separate', () => {
     const h = fakeHistory(3, 'all', true, 0);
-    const probe: ChunkAttempt = { ...h.attempts[0]!, id: 'p', kind: 'probe', ideas: [{ ideaId: 'x', outcome: 'incorrect', clueLevel: 5 }, { ideaId: 'y', outcome: 'incorrect', clueLevel: 5 }, { ideaId: 'z', outcome: 'incorrect', clueLevel: 5 }] };
-    const i = computeInsights({ attempts: [...h.attempts, probe], reviewLog: h.reviewLog, settings: DEFAULT_SETTINGS }, T0);
+    const probe: ChunkAttempt = {
+      ...h.attempts[0]!,
+      id: 'p',
+      kind: 'probe',
+      ideas: [
+        { ideaId: 'x', outcome: 'incorrect', clueLevel: 5 },
+        { ideaId: 'y', outcome: 'incorrect', clueLevel: 5 },
+        { ideaId: 'z', outcome: 'incorrect', clueLevel: 5 },
+      ],
+    };
+    const i = computeInsights(
+      { attempts: [...h.attempts, probe], reviewLog: h.reviewLog, settings: DEFAULT_SETTINGS },
+      T0,
+    );
     expect(i.practised.immediate.value).toBe(1);
     expect(i.practised.nextDay.value).toBe(1);
     expect(i.practised.week.display).toBe('Not measured yet');
@@ -244,7 +285,10 @@ describe('insights', () => {
 
   it('shows “Too few so far” below the minimum sample size', () => {
     const h = fakeHistory(1, 'all', true, 0);
-    const i = computeInsights({ attempts: h.attempts, reviewLog: [], settings: DEFAULT_SETTINGS }, T0);
+    const i = computeInsights(
+      { attempts: h.attempts, reviewLog: [], settings: DEFAULT_SETTINGS },
+      T0,
+    );
     expect(i.practised.comprehension.display).toMatch(/Too few so far/);
   });
 });

@@ -18,12 +18,21 @@ export async function skipOnboarding(page: Page) {
  * Work through one chunk in "Help me remember" mode.
  * `plan` decides per point: 'own' (in my answer, matches), 'hint' (needs a hint then remembers), 'sentence' (needs the source).
  */
-export async function doChunk(page: Page, recall: string, plan: ('own' | 'hint' | 'sentence')[] = ['own', 'own', 'own']) {
+export async function doChunk(
+  page: Page,
+  recall: string,
+  plan: ('own' | 'hint' | 'sentence')[] = ['own', 'own', 'own'],
+) {
   await page.getByRole('button', { name: /I’ve read it/ }).click();
   await expect(page.getByRole('heading', { name: /What do you remember/ })).toBeVisible();
   await page.getByLabel('Your words').fill(recall);
   await page.getByRole('button', { name: /Check my answer|I can’t remember/ }).click();
-  if (await page.getByRole('heading', { name: 'A quick question' }).isVisible().catch(() => false)) {
+  if (
+    await page
+      .getByRole('heading', { name: 'A quick question' })
+      .isVisible()
+      .catch(() => false)
+  ) {
     await page.getByRole('radio').first().click();
     await page.getByRole('button', { name: 'Continue' }).click();
   }

@@ -43,7 +43,9 @@ export const SQLITE_MIGRATIONS: readonly SqliteMigration[] = [
   {
     version: 2,
     description: 'Index records by collection for faster due-review queries',
-    statements: ['CREATE INDEX IF NOT EXISTS idx_records_collection ON records (collection, updated_at)'],
+    statements: [
+      'CREATE INDEX IF NOT EXISTS idx_records_collection ON records (collection, updated_at)',
+    ],
   },
 ];
 
@@ -109,7 +111,10 @@ export class SqliteStore implements RecallStore {
             [op.collection, op.value.id, JSON.stringify(op.value), now],
           );
         } else {
-          await this.db.runAsync('DELETE FROM records WHERE collection = ? AND id = ?', [op.collection, op.id]);
+          await this.db.runAsync('DELETE FROM records WHERE collection = ? AND id = ?', [
+            op.collection,
+            op.id,
+          ]);
         }
       }
     });
@@ -121,12 +126,10 @@ export class SqliteStore implements RecallStore {
       await this.db.runAsync('DELETE FROM records', []);
       for (const c of COLLECTIONS) {
         for (const r of (snapshot[c] ?? []) as { id: string }[]) {
-          await this.db.runAsync('INSERT INTO records (collection, id, json, updated_at) VALUES (?, ?, ?, ?)', [
-            c,
-            r.id,
-            JSON.stringify(r),
-            now,
-          ]);
+          await this.db.runAsync(
+            'INSERT INTO records (collection, id, json, updated_at) VALUES (?, ?, ?, ?)',
+            [c, r.id, JSON.stringify(r), now],
+          );
         }
       }
     });

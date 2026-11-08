@@ -1,12 +1,22 @@
 import { openDB, type IDBPDatabase } from 'idb';
-import { COLLECTIONS, type CollectionName, type RecallStore, type RecordMap, type Snapshot, type StoreOp } from '@recall/core';
+import {
+  COLLECTIONS,
+  type CollectionName,
+  type RecallStore,
+  type RecordMap,
+  type Snapshot,
+  type StoreOp,
+} from '@recall/core';
 
 export const IDB_NAME = 'recall';
 /** IndexedDB schema version. v1: one object store per collection, keyed by `id`. */
 export const IDB_VERSION = 1;
 
 export class StorageWriteError extends Error {
-  constructor(public readonly reason: 'quota' | 'other', message: string) {
+  constructor(
+    public readonly reason: 'quota' | 'other',
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -14,9 +24,15 @@ export class StorageWriteError extends Error {
 function classify(e: unknown): StorageWriteError {
   const name = (e as { name?: string })?.name ?? '';
   if (name === 'QuotaExceededError' || /quota/i.test(String((e as Error)?.message))) {
-    return new StorageWriteError('quota', 'Your device is out of space for Recall. Please export a backup and free some space.');
+    return new StorageWriteError(
+      'quota',
+      'Your device is out of space for Recall. Please export a backup and free some space.',
+    );
   }
-  return new StorageWriteError('other', 'Recall could not save just now. Your last step may need repeating.');
+  return new StorageWriteError(
+    'other',
+    'Recall could not save just now. Your last step may need repeating.',
+  );
 }
 
 export class IdbStore implements RecallStore {
@@ -27,7 +43,8 @@ export class IdbStore implements RecallStore {
       upgrade(database, oldVersion) {
         if (oldVersion < 1) {
           for (const c of COLLECTIONS) {
-            if (!database.objectStoreNames.contains(c)) database.createObjectStore(c, { keyPath: 'id' });
+            if (!database.objectStoreNames.contains(c))
+              database.createObjectStore(c, { keyPath: 'id' });
           }
         }
       },

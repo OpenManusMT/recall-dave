@@ -9,7 +9,6 @@ import {
   dueReviewGroups,
   finishSession,
   getActiveSession,
-  getDocumentChunks,
   getSettings,
   getUserVersion,
   MemoryStore,
@@ -38,7 +37,11 @@ import { nodeSqliteDriver, openMemoryDb } from './helpers/node-sqlite';
 const T0 = new Date('2026-11-08T10:00:00');
 const plusDays = (d: Date, n: number) => new Date(d.getTime() + n * 86_400_000);
 
-function learnInput(sessionId: string, chunk: ChunkRecord, over: Partial<AttemptInput> = {}): AttemptInput {
+function learnInput(
+  sessionId: string,
+  chunk: ChunkRecord,
+  over: Partial<AttemptInput> = {},
+): AttemptInput {
   return {
     attemptId: newId('att'),
     sessionId,
@@ -48,8 +51,18 @@ function learnInput(sessionId: string, chunk: ChunkRecord, over: Partial<Attempt
     startedAt: T0.toISOString(),
     recallText: 'Private words: limescale builds up and an acid removes it.',
     textPeeks: 0,
-    ideas: chunk.ideas.map((i, k) => ({ ideaId: i.id, outcome: k === 0 ? 'correct' : 'partial', clueLevel: k === 0 ? 0 : 2 })),
-    question: chunk.questions[0] ? { questionId: chunk.questions[0].id, chosenIndex: chunk.questions[0].answerIndex, correct: true } : null,
+    ideas: chunk.ideas.map((i, k) => ({
+      ideaId: i.id,
+      outcome: k === 0 ? 'correct' : 'partial',
+      clueLevel: k === 0 ? 0 : 2,
+    })),
+    question: chunk.questions[0]
+      ? {
+          questionId: chunk.questions[0].id,
+          chosenIndex: chunk.questions[0].answerIndex,
+          correct: true,
+        }
+      : null,
     tooMuch: false,
     ...over,
   };
@@ -57,7 +70,10 @@ function learnInput(sessionId: string, chunk: ChunkRecord, over: Partial<Attempt
 
 const factories: [string, () => Promise<RecallStore>][] = [
   ['MemoryStore', async () => new MemoryStore()],
-  ['SqliteStore (node:sqlite, same migrations as iOS)', async () => SqliteStore.open(nodeSqliteDriver(openMemoryDb()))],
+  [
+    'SqliteStore (node:sqlite, same migrations as iOS)',
+    async () => SqliteStore.open(nodeSqliteDriver(openMemoryDb())),
+  ],
 ];
 
 describe.each(factories)('repository on %s', (_name, make) => {
@@ -94,11 +110,17 @@ describe.each(factories)('repository on %s', (_name, make) => {
 
     const rev = await recordAttempt(
       store,
-      { ...learnInput(session.id, first), kind: 'review', ideas: first.ideas.map((i) => ({ ideaId: i.id, outcome: 'correct', clueLevel: 0 })) },
+      {
+        ...learnInput(session.id, first),
+        kind: 'review',
+        ideas: first.ideas.map((i) => ({ ideaId: i.id, outcome: 'correct', clueLevel: 0 })),
+      },
       tomorrow,
     );
     expect(rev.attempt.elapsedDays).toBeCloseTo(1, 3);
-    expect(rev.logs.every((l) => l.authoritativeDueBefore !== null && l.recommendedBefore !== null)).toBe(true);
+    expect(
+      rev.logs.every((l) => l.authoritativeDueBefore !== null && l.recommendedBefore !== null),
+    ).toBe(true);
     expect(await dueReviewGroups(store, tomorrow)).toHaveLength(0);
     const doc = await store.get('documents', document.id);
     expect(doc?.nextChunkIndex).toBe(1);
@@ -120,7 +142,13 @@ describe.each(factories)('repository on %s', (_name, make) => {
     const { session } = await startSession(store, 'remember', T0);
     const { chunks } = await openPassage(store, TEST_PASSAGE, await getSettings(store), T0);
     await expect(
-      recordAttempt(store, learnInput(session.id, chunks[0] as ChunkRecord, { ideas: [{ ideaId: 'nope', outcome: 'correct', clueLevel: 0 }] }), T0),
+      recordAttempt(
+        store,
+        learnInput(session.id, chunks[0] as ChunkRecord, {
+          ideas: [{ ideaId: 'nope', outcome: 'correct', clueLevel: 0 }],
+        }),
+        T0,
+      ),
     ).rejects.toThrow();
   });
 
@@ -134,7 +162,15 @@ describe.each(factories)('repository on %s', (_name, make) => {
   it('“Too much text” re-plans the unread part with shorter chunks and keeps read chunks', async () => {
     const s = await getSettings(store);
     const { document, chunks } = await openPassage(store, TEST_PASSAGE, s, T0);
-    const replanned = await replanFrom(store, document.id, 1, 30, { ...s, minChunkWords: 20 }, TEST_PASSAGE, T0);
+    const replanned = await replanFrom(
+      store,
+      document.id,
+      1,
+      30,
+      { ...s, minChunkWords: 20 },
+      TEST_PASSAGE,
+      T0,
+    );
     expect(replanned[0]?.id).toBe(chunks[0]?.id);
     expect(replanned.length).toBeGreaterThanOrEqual(chunks.length);
     const ideaIds = replanned.flatMap((c) => c.ideas.map((i) => i.id));
@@ -160,8 +196,24 @@ describe.each(factories)('repository on %s', (_name, make) => {
 
   it('saves and resumes a draft after a restart, and closes stale sessions', async () => {
     const { session } = await startSession(store, 'remember', T0);
-    const { document, chunks } = await openPassage(store, TEST_PASSAGE, await getSettings(store), T0);
-    await saveDraft(store, session.id, { documentId: document.id, chunkId: chunks[0]!.id, phase: 'recall', recallText: 'half typed', kind: 'learn' }, T0);
+    const { document, chunks } = await openPassage(
+      store,
+      TEST_PASSAGE,
+      await getSettings(store),
+      T0,
+    );
+    await saveDraft(
+      store,
+      session.id,
+      {
+        documentId: document.id,
+        chunkId: chunks[0]!.id,
+        phase: 'recall',
+        recallText: 'half typed',
+        kind: 'learn',
+      },
+      T0,
+    );
     const active = await getActiveSession(store);
     expect(active?.draft?.recallText).toBe('half typed');
     const { session: s2 } = await startSession(store, 'remember', plusDays(T0, 1));
@@ -173,7 +225,12 @@ describe.each(factories)('repository on %s', (_name, make) => {
 
   it('deleting a reading removes its text, points, attempts and history', async () => {
     const { session } = await startSession(store, 'remember', T0);
-    const { document, chunks } = await openPassage(store, TEST_PASSAGE, await getSettings(store), T0);
+    const { document, chunks } = await openPassage(
+      store,
+      TEST_PASSAGE,
+      await getSettings(store),
+      T0,
+    );
     await recordAttempt(store, learnInput(session.id, chunks[0] as ChunkRecord), T0);
     await deleteDocument(store, document.id);
     const snap = await readSnapshot(store);
@@ -240,7 +297,11 @@ describe('SQLite migrations', () => {
     const store = await SqliteStore.open(d);
     expect(await getUserVersion(d)).toBe(2);
     expect((await getSettings(store)).fontScale).toBe(1.5);
-    const idx = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_records_collection'").get();
+    const idx = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_records_collection'",
+      )
+      .get();
     expect(idx).toBeTruthy();
   });
 
@@ -270,7 +331,9 @@ describe('MemoryStore interrupted write', () => {
     const { session } = await startSession(store, 'remember', T0);
     const { chunks } = await openPassage(store, TEST_PASSAGE, await getSettings(store), T0);
     store.failNextBatchAfter = 2;
-    await expect(recordAttempt(store, learnInput(session.id, chunks[0] as ChunkRecord), T0)).rejects.toThrow();
+    await expect(
+      recordAttempt(store, learnInput(session.id, chunks[0] as ChunkRecord), T0),
+    ).rejects.toThrow();
     const snap = await readSnapshot(store);
     expect(snap.attempts).toHaveLength(0);
     expect(snap.memory).toHaveLength(0);
@@ -281,9 +344,26 @@ describe('MemoryStore interrupted write', () => {
 describe('suggestions', () => {
   it('offers an in-progress passage first, then a new one; probes are separate', () => {
     const lib = [TEST_PASSAGE, { ...TEST_PASSAGE, id: 'p98-other', title: 'Other' }];
-    const probe = { ...TEST_PASSAGE, id: 'probe-01-x', title: 'Probe', kind: 'probe' as const, sections: [TEST_PASSAGE.sections[0]!] };
+    const probe = {
+      ...TEST_PASSAGE,
+      id: 'probe-01-x',
+      title: 'Probe',
+      kind: 'probe' as const,
+      sections: [TEST_PASSAGE.sections[0]!],
+    };
     expect(suggestNextPassage([...lib, probe], [])?.id).toBe('p99-test-kettles');
-    const doc = { id: 'd', title: '', text: '', createdAt: T0.toISOString(), updatedAt: T0.toISOString(), provenance: 'sample' as const, passageId: 'p99-test-kettles', status: 'finished' as const, nextChunkIndex: 3, chunkCount: 3 };
+    const doc = {
+      id: 'd',
+      title: '',
+      text: '',
+      createdAt: T0.toISOString(),
+      updatedAt: T0.toISOString(),
+      provenance: 'sample' as const,
+      passageId: 'p99-test-kettles',
+      status: 'finished' as const,
+      nextChunkIndex: 3,
+      chunkCount: 3,
+    };
     expect(suggestNextPassage([...lib, probe], [doc])?.id).toBe('p98-other');
     expect(suggestNextProbe([...lib, probe], [doc])?.id).toBe('probe-01-x');
   });
@@ -291,7 +371,9 @@ describe('suggestions', () => {
 
 describe('privacy: no learner text in logs', () => {
   it('the core journey writes nothing to the console', async () => {
-    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) => vi.spyOn(console, m));
+    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) =>
+      vi.spyOn(console, m),
+    );
     const store = new MemoryStore();
     const { session } = await startSession(store, 'remember', T0);
     const { chunks } = await openPassage(store, TEST_PASSAGE, await getSettings(store), T0);

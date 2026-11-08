@@ -67,7 +67,15 @@ describe('authoritative fixed-step schedule', () => {
       ['correct', 0],
       ['incorrect', 5],
     ] as const) {
-      const u = scheduleFirstExposure({ ideaId: 'i', chunkId: 'c', documentId: 'd', isProbe: false, outcome: o, clueLevel: c, now: at('2026-11-08T15:00:00') });
+      const u = scheduleFirstExposure({
+        ideaId: 'i',
+        chunkId: 'c',
+        documentId: 'd',
+        isProbe: false,
+        outcome: o,
+        clueLevel: c,
+        now: at('2026-11-08T15:00:00'),
+      });
       expect(u.state.step).toBe(0);
       expect(new Date(u.state.authoritativeNextAt).getDate()).toBe(9);
       expect(new Date(u.state.authoritativeNextAt).getHours()).toBe(0);
@@ -84,7 +92,15 @@ describe('authoritative fixed-step schedule', () => {
   });
 
   it('keeps shadow recommendations separate from the real due date', () => {
-    const first = scheduleFirstExposure({ ideaId: 'i', chunkId: 'c', documentId: 'd', isProbe: false, outcome: 'correct', clueLevel: 0, now: at('2026-11-08T10:00:00') });
+    const first = scheduleFirstExposure({
+      ideaId: 'i',
+      chunkId: 'c',
+      documentId: 'd',
+      isProbe: false,
+      outcome: 'correct',
+      clueLevel: 0,
+      now: at('2026-11-08T10:00:00'),
+    });
     const rev = scheduleReview(first.state, 'correct', 0, at('2026-11-09T10:00:00'));
     expect(rev.state.mode).toBe('shadow');
     expect(rev.state.authoritativeNextAt).not.toBe('');
@@ -96,13 +112,29 @@ describe('authoritative fixed-step schedule', () => {
   });
 
   it('does not advance the real schedule on a same-day re-practice', () => {
-    const first = scheduleFirstExposure({ ideaId: 'i', chunkId: 'c', documentId: 'd', isProbe: false, outcome: 'correct', clueLevel: 0, now: at('2026-11-08T10:00:00') });
+    const first = scheduleFirstExposure({
+      ideaId: 'i',
+      chunkId: 'c',
+      documentId: 'd',
+      isProbe: false,
+      outcome: 'correct',
+      clueLevel: 0,
+      now: at('2026-11-08T10:00:00'),
+    });
     const again = scheduleReview(first.state, 'correct', 0, at('2026-11-08T11:00:00'));
     expect(again.state.step).toBe(first.state.step);
   });
 
   it('is due from the start of the due day', () => {
-    const first = scheduleFirstExposure({ ideaId: 'i', chunkId: 'c', documentId: 'd', isProbe: false, outcome: 'correct', clueLevel: 0, now: at('2026-11-08T23:30:00') });
+    const first = scheduleFirstExposure({
+      ideaId: 'i',
+      chunkId: 'c',
+      documentId: 'd',
+      isProbe: false,
+      outcome: 'correct',
+      clueLevel: 0,
+      now: at('2026-11-08T23:30:00'),
+    });
     expect(isDue(first.state, at('2026-11-08T23:59:00'))).toBe(false);
     expect(isDue(first.state, at('2026-11-09T00:01:00'))).toBe(true);
   });
@@ -128,19 +160,33 @@ describe('self-check clue ladder', () => {
   });
 
   it('climbs semantic (2) then cloze (3) cues and records the highest needed', () => {
-    const s = run({ type: 'covered', answer: 'no' }, { type: 'another_hint' }, { type: 'remember_now' }, { type: 'match', answer: 'yes' });
+    const s = run(
+      { type: 'covered', answer: 'no' },
+      { type: 'another_hint' },
+      { type: 'remember_now' },
+      { type: 'match', answer: 'yes' },
+    );
     expect(s).toMatchObject({ outcome: 'correct', recordedLevel: 3 });
   });
 
   it('after the cloze, a further hint shows the source sentence (4); reread is 5', () => {
-    const s4 = run({ type: 'covered', answer: 'no' }, { type: 'another_hint' }, { type: 'another_hint' }, { type: 'continue' });
+    const s4 = run(
+      { type: 'covered', answer: 'no' },
+      { type: 'another_hint' },
+      { type: 'another_hint' },
+      { type: 'continue' },
+    );
     expect(s4).toMatchObject({ outcome: 'incorrect', recordedLevel: 4 });
     const s5 = run({ type: 'covered', answer: 'no' }, { type: 'reread' }, { type: 'continue' });
     expect(s5).toMatchObject({ outcome: 'incorrect', recordedLevel: 5 });
   });
 
   it('a mismatch after a reveal goes to the source (no repeated guessing loop)', () => {
-    const s = run({ type: 'covered', answer: 'no' }, { type: 'remember_now' }, { type: 'match', answer: 'no' });
+    const s = run(
+      { type: 'covered', answer: 'no' },
+      { type: 'remember_now' },
+      { type: 'match', answer: 'no' },
+    );
     expect(s).toMatchObject({ phase: 'done', outcome: 'incorrect', recordedLevel: 4 });
     expect(ladderFeedback(s)).not.toMatch(/wrong|fail|bad/i);
   });

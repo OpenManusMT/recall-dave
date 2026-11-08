@@ -1,8 +1,21 @@
 import type { AuthoredIdea, AuthoredPassage, AuthoredSection, Relation } from './content-types';
 import type { KeyIdeaSnapshot, QuestionSnapshot } from './types';
-import { buildAuthoredCues, makeCloze, renumberStructural, sentenceCue, structuralCue } from './clues';
+import {
+  buildAuthoredCues,
+  makeCloze,
+  renumberStructural,
+  sentenceCue,
+  structuralCue,
+} from './clues';
 import { findCriticalQualifiers } from './content-validate';
-import { containsSpan, countWords, normaliseSpace, splitParagraphs, splitSentences, wordTokens } from './text';
+import {
+  containsSpan,
+  countWords,
+  normaliseSpace,
+  splitParagraphs,
+  splitSentences,
+  wordTokens,
+} from './text';
 import { isStopword } from './stopwords';
 
 export interface ChunkOptions {
@@ -16,7 +29,12 @@ export interface ChunkOptions {
   maxIdeas?: number;
 }
 
-export const DEFAULT_CHUNK_OPTIONS: ChunkOptions = { targetWords: 80, minWords: 40, maxWords: 180, maxIdeas: 3 };
+export const DEFAULT_CHUNK_OPTIONS: ChunkOptions = {
+  targetWords: 80,
+  minWords: 40,
+  maxWords: 180,
+  maxIdeas: 3,
+};
 
 export interface PlannedChunk {
   text: string;
@@ -58,7 +76,11 @@ function spanRange(sentences: string[], spans: string[]): [number, number] | nul
         if (normaliseSpace(joined).includes(s)) {
           // shrink from the left to the tightest window
           let start = i;
-          while (start < j && normaliseSpace(sentences.slice(start + 1, j + 1).join(' ')).includes(s)) start++;
+          while (
+            start < j &&
+            normaliseSpace(sentences.slice(start + 1, j + 1).join(' ')).includes(s)
+          )
+            start++;
           lo = Math.min(lo, start);
           hi = Math.max(hi, j);
           found = true;
@@ -89,7 +111,9 @@ function sectionUnit(passageId: string, s: AuthoredSection): Unit {
     sentences: splitSentences(s.text),
     sectionIds: [s.id],
     ideas: s.ideas.map((i) => authoredIdeaSnapshot(passageId, i)),
-    questions: [{ ...s.question, id: `${passageId}:${s.question.id}`, options: [...s.question.options] }],
+    questions: [
+      { ...s.question, id: `${passageId}:${s.question.id}`, options: [...s.question.options] },
+    ],
   };
 }
 
@@ -220,7 +244,8 @@ export function planAuthoredChunks(
 function guessRelation(sentence: string): Relation {
   const s = sentence.toLowerCase();
   if (/\b(unless|except|apart from|however|but not)\b/.test(s)) return 'rule_exception';
-  if (/\b(because|so that|therefore|causes?|leads? to|as a result|which means|due to)\b/.test(s)) return 'cause_effect';
+  if (/\b(because|so that|therefore|causes?|leads? to|as a result|which means|due to)\b/.test(s))
+    return 'cause_effect';
   if (/\b(first|then|after|before|next|finally|later|until)\b/.test(s)) return 'sequence';
   if (/\b(than|whereas|unlike|similar|compared)\b/.test(s)) return 'comparison';
   return 'fact';
@@ -248,7 +273,11 @@ function positionPhrase(i: number, n: number): string {
 }
 
 /** Pick the 1–3 most informative sentences of a chunk as grounded key points. */
-export function heuristicIdeas(chunkText: string, idPrefix: string, maxIdeas = 3): KeyIdeaSnapshot[] {
+export function heuristicIdeas(
+  chunkText: string,
+  idPrefix: string,
+  maxIdeas = 3,
+): KeyIdeaSnapshot[] {
   const sentences = splitSentences(chunkText);
   if (sentences.length === 0) return [];
   const words = countWords(chunkText);
@@ -264,12 +293,16 @@ export function heuristicIdeas(chunkText: string, idPrefix: string, maxIdeas = 3
     const cw = contentWords(r.s);
     const freq = new Map<string, number>();
     for (const w of cw) freq.set(w, (freq.get(w) ?? 0) + 1);
-    const keywords = [...new Set(cw)].sort((a, b) => (freq.get(b) ?? 0) - (freq.get(a) ?? 0) || b.length - a.length);
+    const keywords = [...new Set(cw)].sort(
+      (a, b) => (freq.get(b) ?? 0) - (freq.get(a) ?? 0) || b.length - a.length,
+    );
     const hint = keywords[0];
     const clozeWords = keywords.slice(0, 2);
     // Find the original-case versions of the keywords in the sentence for the cloze.
     const originals = clozeWords
-      .map((w) => r.s.match(new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'))?.[0])
+      .map(
+        (w) => r.s.match(new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'))?.[0],
+      )
       .filter((x): x is string => Boolean(x));
     const topic = positionPhrase(r.i, sentences.length);
     return {
@@ -281,7 +314,9 @@ export function heuristicIdeas(chunkText: string, idPrefix: string, maxIdeas = 3
       topic,
       cues: {
         structural: structuralCue(k, ranked.length, topic),
-        semantic: hint ? `It mentions the word “${hint}”.` : 'Think about what this part was mainly saying.',
+        semantic: hint
+          ? `It mentions the word “${hint}”.`
+          : 'Think about what this part was mainly saying.',
         cloze: makeCloze(r.s, originals),
         sentence: sentenceCue([r.s]),
       },
@@ -291,7 +326,11 @@ export function heuristicIdeas(chunkText: string, idPrefix: string, maxIdeas = 3
 }
 
 /** Plan chunks for pasted text: paragraph boundaries first, then sentence groups. */
-export function planPastedChunks(text: string, options: ChunkOptions, idPrefix: string): PlannedChunk[] {
+export function planPastedChunks(
+  text: string,
+  options: ChunkOptions,
+  idPrefix: string,
+): PlannedChunk[] {
   const o = clampOptions(options);
   const units: Unit[] = [];
   for (const para of splitParagraphs(text)) {
@@ -306,16 +345,24 @@ export function planPastedChunks(text: string, options: ChunkOptions, idPrefix: 
     for (const s of sentences) {
       const cw = countWords(current.join(' '));
       const sw = countWords(s);
-      if (current.length > 0 && cw >= o.minWords && (cw + sw > o.targetWords * 1.15 || cw >= o.targetWords * 0.85)) {
+      if (
+        current.length > 0 &&
+        cw >= o.minWords &&
+        (cw + sw > o.targetWords * 1.15 || cw >= o.targetWords * 0.85)
+      ) {
         units.push({ sentences: current, sectionIds: [], ideas: [], questions: [] });
         current = [];
       }
       current.push(s);
     }
-    if (current.length) units.push({ sentences: current, sectionIds: [], ideas: [], questions: [] });
+    if (current.length)
+      units.push({ sentences: current, sectionIds: [], ideas: [], questions: [] });
   }
   // Pasted units carry no ideas yet, so merging is limited by words only.
-  const merged = mergeUnits(units, { ...o, maxIdeas: Number.POSITIVE_INFINITY as unknown as number });
+  const merged = mergeUnits(units, {
+    ...o,
+    maxIdeas: Number.POSITIVE_INFINITY as unknown as number,
+  });
   return merged.map((u, idx) => {
     const t = unitText(u);
     const ideas = heuristicIdeas(t, `${idPrefix}:c${idx}`, o.maxIdeas);

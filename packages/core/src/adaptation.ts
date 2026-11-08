@@ -50,10 +50,13 @@ export function decideAdaptation(
   // First delayed review of each idea from those chunks.
   const firstDelayed = new Map<string, ReviewLogEntry>();
   for (const r of [...data.reviewLog].sort((a, b) => Date.parse(a.at) - Date.parse(b.at))) {
-    if (r.kind !== 'review' || r.elapsedDays === null || r.elapsedDays < NEXT_DAY_WINDOW[0]) continue;
+    if (r.kind !== 'review' || r.elapsedDays === null || r.elapsedDays < NEXT_DAY_WINDOW[0])
+      continue;
     if (!firstDelayed.has(r.ideaId)) firstDelayed.set(r.ideaId, r);
   }
-  const chunksWithDelayed = recentNew.filter((a) => a.ideas.some((i) => firstDelayed.has(i.ideaId)));
+  const chunksWithDelayed = recentNew.filter((a) =>
+    a.ideas.some((i) => firstDelayed.has(i.ideaId)),
+  );
   const delayed = mean(
     chunksWithDelayed.flatMap((a) =>
       a.ideas
@@ -62,21 +65,38 @@ export function decideAdaptation(
         .map((r) => independentCredit(r.outcome, r.clueLevel)),
     ),
   );
-  const comprehension = mean(recentNew.filter((a) => a.question).map((a) => (a.question?.correct ? 1 : 0)));
-  const clueDependence = mean(recentNew.flatMap((a) => a.ideas.map((i) => (i.clueLevel >= 1 ? 1 : 0))));
-  const window = { chunks: recentNew.length, delayedRecall: delayed, comprehension, clueDependence };
+  const comprehension = mean(
+    recentNew.filter((a) => a.question).map((a) => (a.question?.correct ? 1 : 0)),
+  );
+  const clueDependence = mean(
+    recentNew.flatMap((a) => a.ideas.map((i) => (i.clueLevel >= 1 ? 1 : 0))),
+  );
+  const window = {
+    chunks: recentNew.length,
+    delayedRecall: delayed,
+    comprehension,
+    clueDependence,
+  };
 
-  const clampW = (w: number) => Math.min(settings.maxChunkWords, Math.max(settings.minChunkWords, Math.round(w)));
+  const clampW = (w: number) =>
+    Math.min(settings.maxChunkWords, Math.max(settings.minChunkWords, Math.round(w)));
 
   if (settings.chunkMode === 'fixed') {
-    return { action: 'fixed_by_user', fromWords: from, toWords: from, reason: 'You chose a fixed chunk size.', window };
+    return {
+      action: 'fixed_by_user',
+      fromWords: from,
+      toWords: from,
+      reason: 'You chose a fixed chunk size.',
+      window,
+    };
   }
   if (chunksWithDelayed.length < cfg.minChunksWithDelayedData || delayed === null) {
     return {
       action: 'not_enough_data',
       fromWords: from,
       toWords: from,
-      reason: 'Keeping the same size until a few more parts have been reviewed a day or more later.',
+      reason:
+        'Keeping the same size until a few more parts have been reviewed a day or more later.',
       window,
     };
   }
@@ -105,18 +125,31 @@ export function decideAdaptation(
       action: to < from ? 'decrease' : 'hold',
       fromWords: from,
       toWords: to,
-      reason: to < from ? 'Parts will be a little shorter to make them easier to hold on to.' : 'Already at the shortest size.',
+      reason:
+        to < from
+          ? 'Parts will be a little shorter to make them easier to hold on to.'
+          : 'Already at the shortest size.',
       window,
     };
   }
-  return { action: 'hold', fromWords: from, toWords: from, reason: 'The current size seems about right.', window };
+  return {
+    action: 'hold',
+    fromWords: from,
+    toWords: from,
+    reason: 'The current size seems about right.',
+    window,
+  };
 }
 
 /**
  * Apply a decision to settings at the start of a session (at most once per
  * session — one major variable per session).
  */
-export function applyAdaptation(settings: Settings, decision: AdaptationDecision, sessionId: string): Settings {
+export function applyAdaptation(
+  settings: Settings,
+  decision: AdaptationDecision,
+  sessionId: string,
+): Settings {
   if (settings.lastAdaptationSessionId === sessionId) return settings;
   if (decision.action !== 'increase' && decision.action !== 'decrease') {
     return { ...settings, lastAdaptationSessionId: sessionId };
@@ -125,7 +158,14 @@ export function applyAdaptation(settings: Settings, decision: AdaptationDecision
 }
 
 /** "Too much text": reduce immediately, from whichever is smaller — the target or the chunk just shown. */
-export function tooMuchTarget(settings: Settings, shownChunkWords: number, cfg = DEFAULT_ADAPTATION): number {
-  const base = Math.min(currentChunkTarget(settings), Math.max(settings.minChunkWords, shownChunkWords));
+export function tooMuchTarget(
+  settings: Settings,
+  shownChunkWords: number,
+  cfg = DEFAULT_ADAPTATION,
+): number {
+  const base = Math.min(
+    currentChunkTarget(settings),
+    Math.max(settings.minChunkWords, shownChunkWords),
+  );
   return Math.max(settings.minChunkWords, Math.round(base * cfg.tooMuchFactor));
 }

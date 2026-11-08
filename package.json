@@ -2,6 +2,7 @@
   "name": "recall-dave",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Recall (Read & Remember): a calm, local-first reading and remembering aid. PWA + Expo native app sharing one tested core.",
   "license": "MIT",
   "workspaces": [
@@ -34,6 +35,7 @@
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.20.5",
     "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "typescript": "^5.9.3",

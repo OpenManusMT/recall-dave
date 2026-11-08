@@ -7,3 +7,8 @@ services/
 tests/a001/results/
 package-lock.json
 *.md
+tests/a001/holdout/
+tests/a001/.build/
+apps/web/public/
+docs/
+release/

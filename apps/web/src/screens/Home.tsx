@@ -39,7 +39,9 @@ export function Home() {
       const snap = await readSnapshot(store);
       const groups = await dueReviewGroups(store, now());
       const active = await getActiveSession(store);
-      const activeDoc = active?.draft ? snap.documents.find((d) => d.id === active.draft?.documentId) : undefined;
+      const activeDoc = active?.draft
+        ? snap.documents.find((d) => d.id === active.draft?.documentId)
+        : undefined;
       const d: HomeData = {
         due: groups.reduce((n, g) => n + g.ideas.length, 0),
         dueParts: groups.length,
@@ -48,7 +50,10 @@ export function Home() {
         activeDoc,
         suggestion: suggestNextPassage(LIBRARY_PASSAGES, snap.documents),
         probe: suggestNextProbe(ALL_PASSAGES, snap.documents),
-        insights: computeInsights({ attempts: snap.attempts, reviewLog: snap.reviewLog, settings }, now()),
+        insights: computeInsights(
+          { attempts: snap.attempts, reviewLog: snap.reviewLog, settings },
+          now(),
+        ),
       };
       if (alive) setData(d);
     })();
@@ -63,7 +68,10 @@ export function Home() {
     const d = data.activeDoc;
     if (!d) return;
     if (data.active?.draft?.kind === 'review') navigate('/reviews/run');
-    else if (d.passageId) navigate(`/${d.provenance === 'probe' ? 'probe' : 'read'}/${d.passageId}${data.active?.mode === 'read' ? '?mode=read' : ''}`);
+    else if (d.passageId)
+      navigate(
+        `/${d.provenance === 'probe' ? 'probe' : 'read'}/${d.passageId}${data.active?.mode === 'read' ? '?mode=read' : ''}`,
+      );
     else navigate(`/doc/${d.id}${data.active?.mode === 'read' ? '?mode=read' : ''}`);
   };
 
@@ -85,14 +93,16 @@ export function Home() {
 
       {persistence === 'memory-only' ? (
         <p className="banner" role="status">
-          This browser is not letting Recall save anything (for example in Private Browsing). You can still read, but progress
-          will be lost when you close the page.
+          This browser is not letting Recall save anything (for example in Private Browsing). You
+          can still read, but progress will be lost when you close the page.
         </p>
       ) : null}
 
       {data.active?.draft && data.activeDoc ? (
         <div className="card soft stack">
-          <p style={{ fontWeight: 600, margin: 0 }}>You were part-way through “{data.activeDoc.title}”.</p>
+          <p style={{ fontWeight: 600, margin: 0 }}>
+            You were part-way through “{data.activeDoc.title}”.
+          </p>
           <button type="button" className="btn primary block large" onClick={resume}>
             Continue where you left off
           </button>
@@ -128,7 +138,9 @@ export function Home() {
           </>
         ) : (
           <p className="muted" style={{ margin: 0 }}>
-            {data.next ? `Nothing due now. Next review ${describeDue(data.next, now())}.` : 'Nothing to review yet.'}
+            {data.next
+              ? `Nothing due now. Next review ${describeDue(data.next, now())}.`
+              : 'Nothing to review yet.'}
           </p>
         )}
       </section>
@@ -137,12 +149,21 @@ export function Home() {
         <h2 id="glance-h">At a glance</h2>
         <div className="grid-2">
           {[practised.nextDay, practised.week, practised.clueDependence].map((m) => (
-            <a key={m.key} className="card metric" href={href('/insights')} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <a
+              key={m.key}
+              className="card metric"
+              href={href('/insights')}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
               <span className="small muted">{m.label}</span>
               <span className={`value ${m.value === null ? 'unmeasured' : ''}`}>{m.display}</span>
             </a>
           ))}
-          <a className="card metric" href={href('/insights')} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <a
+            className="card metric"
+            href={href('/insights')}
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
             <span className="small muted">Comfortable part size</span>
             <span className="value">{data.insights.comfortableChunkWords} words</span>
           </a>
@@ -153,8 +174,8 @@ export function Home() {
         <section className="card stack" aria-labelledby="fresh-h">
           <h2 id="fresh-h">Fresh-text check</h2>
           <p className="muted" style={{ margin: 0 }}>
-            Optional. A short passage you haven’t seen before, to show how reading new text is going. Kept separate from
-            practice.
+            Optional. A short passage you haven’t seen before, to show how reading new text is
+            going. Kept separate from practice.
           </p>
           <a className="btn secondary block" href={href(`/probe/${data.probe.id}`)}>
             Try a fresh passage

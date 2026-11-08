@@ -3,12 +3,20 @@
  * Apple's on-device voices). It is offered only when the feature exists.
  */
 export function canReadAloud(): boolean {
-  return typeof window !== 'undefined' && 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance === 'function';
+  return (
+    typeof window !== 'undefined' &&
+    'speechSynthesis' in window &&
+    typeof window.SpeechSynthesisUtterance === 'function'
+  );
 }
 
 function pickVoice(): SpeechSynthesisVoice | undefined {
   const voices = window.speechSynthesis.getVoices();
-  return voices.find((v) => v.lang === 'en-GB' && v.localService) ?? voices.find((v) => v.lang === 'en-GB') ?? voices.find((v) => v.lang.startsWith('en'));
+  return (
+    voices.find((v) => v.lang === 'en-GB' && v.localService) ??
+    voices.find((v) => v.lang === 'en-GB') ??
+    voices.find((v) => v.lang.startsWith('en'))
+  );
 }
 
 export function speak(text: string, onEnd?: () => void): boolean {

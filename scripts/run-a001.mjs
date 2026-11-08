@@ -19,10 +19,21 @@ const a001 = resolve(root, 'tests/a001');
 const out = resolve(a001, 'results');
 mkdirSync(out, { recursive: true });
 const py = process.platform === 'win32' ? 'python' : 'python3';
-const env = { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: a001, PYTHONIOENCODING: 'utf-8' };
+const env = {
+  ...process.env,
+  PYTHONDONTWRITEBYTECODE: '1',
+  PYTHONPATH: a001,
+  PYTHONIOENCODING: 'utf-8',
+};
 
 function run(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, { cwd: root, env, encoding: 'utf-8', shell: process.platform === 'win32' && cmd === 'npx', ...opts });
+  const r = spawnSync(cmd, args, {
+    cwd: root,
+    env,
+    encoding: 'utf-8',
+    shell: process.platform === 'win32' && cmd === 'npx',
+    ...opts,
+  });
   if (r.error) throw r.error;
   return r;
 }
@@ -35,38 +46,101 @@ function must(r, what) {
 }
 
 console.log('• Integrity: original pack checksums, frozen holdout, adapter isolation');
-const guard = must(run(py, ['-m', 'unittest', '-v', resolve(a001, 'test_adapter.py')]), 'integrity/adapter tests');
+const guard = must(
+  run(py, ['-m', 'unittest', '-v', resolve(a001, 'test_adapter.py')]),
+  'integrity/adapter tests',
+);
 writeFileSync(resolve(out, 'integrity-tests.txt'), guard.stderr + guard.stdout);
 
 console.log('• Original harness unit tests');
-const ut = must(run(py, ['-m', 'unittest', 'discover', '-s', 'tests', '-v'], { cwd: harness }), 'original harness unit tests');
+const ut = must(
+  run(py, ['-m', 'unittest', 'discover', '-s', 'tests', '-v'], { cwd: harness }),
+  'original harness unit tests',
+);
 writeFileSync(resolve(out, 'harness-unittests.txt'), ut.stderr + ut.stdout);
 
 console.log('• Building candidate scorer bundle');
-must(run('npx', ['vite', 'build', '--config', 'tests/a001/vite.scorer.config.mts']), 'scorer bundle build');
+must(
+  run('npx', ['vite', 'build', '--config', 'tests/a001/vite.scorer.config.mts']),
+  'scorer bundle build',
+);
 
 const evaluate = (cases, preds, report) =>
-  must(run(py, [resolve(harness, 'evaluate.py'), '--cases', cases, '--predictions', preds, '--out', report]), `evaluate ${report}`);
+  must(
+    run(py, [
+      resolve(harness, 'evaluate.py'),
+      '--cases',
+      cases,
+      '--predictions',
+      preds,
+      '--out',
+      report,
+    ]),
+    `evaluate ${report}`,
+  );
 const runScorer = (scorer, cases, preds) =>
-  must(run(py, [resolve(harness, 'run_scorer.py'), '--scorer', scorer, '--cases', cases, '--runs', '5', '--out', preds]), `run ${scorer}`);
+  must(
+    run(py, [
+      resolve(harness, 'run_scorer.py'),
+      '--scorer',
+      scorer,
+      '--cases',
+      cases,
+      '--runs',
+      '5',
+      '--out',
+      preds,
+    ]),
+    `run ${scorer}`,
+  );
 
 const A001 = resolve(harness, 'cases.jsonl');
 const HOLD = resolve(a001, 'holdout/holdout_cases.jsonl');
 const ADV = resolve(a001, 'holdout/adversarial_cases.jsonl');
 
 console.log('• Oracle (harness mechanics only)');
-evaluate(A001, resolve(harness, 'oracle_predictions.jsonl'), resolve(out, 'A001_ORACLE_REPORT.json'));
-for (const [name, file] of [['HOLDOUT', HOLD], ['ADVERSARIAL', ADV]]) {
-  must(run(py, [resolve(harness, 'make_oracle_predictions.py'), '--cases', file, '--runs', '5', '--out', resolve(out, `${name}_oracle_predictions.jsonl`)]), 'oracle predictions');
-  evaluate(file, resolve(out, `${name}_oracle_predictions.jsonl`), resolve(out, `${name}_ORACLE_REPORT.json`));
+evaluate(
+  A001,
+  resolve(harness, 'oracle_predictions.jsonl'),
+  resolve(out, 'A001_ORACLE_REPORT.json'),
+);
+for (const [name, file] of [
+  ['HOLDOUT', HOLD],
+  ['ADVERSARIAL', ADV],
+]) {
+  must(
+    run(py, [
+      resolve(harness, 'make_oracle_predictions.py'),
+      '--cases',
+      file,
+      '--runs',
+      '5',
+      '--out',
+      resolve(out, `${name}_oracle_predictions.jsonl`),
+    ]),
+    'oracle predictions',
+  );
+  evaluate(
+    file,
+    resolve(out, `${name}_oracle_predictions.jsonl`),
+    resolve(out, `${name}_ORACLE_REPORT.json`),
+  );
 }
 
 console.log('• Lexical baseline (original, deliberately weak)');
 runScorer('baseline_scorer:score_case', A001, resolve(out, 'A001_baseline_predictions.jsonl'));
-evaluate(A001, resolve(out, 'A001_baseline_predictions.jsonl'), resolve(out, 'A001_BASELINE_REPORT.json'));
+evaluate(
+  A001,
+  resolve(out, 'A001_baseline_predictions.jsonl'),
+  resolve(out, 'A001_BASELINE_REPORT.json'),
+);
 
 const reports = {};
-for (const [name, file] of [['A001', A001], ['HOLDOUT', HOLD], ['ADVERSARIAL', ADV]]) {
+for (const [name, file] of [
+  ['A001', A001],
+  ['HOLDOUT', HOLD],
+  ['ADVERSARIAL', ADV],
+]) {
   console.log(`• Candidate scorer × 5 runs on ${name}`);
   const preds = resolve(out, `${name}_candidate_predictions.jsonl`);
   runScorer('recall_adapter:score_case', file, preds);
@@ -79,7 +153,10 @@ const oracle = JSON.parse(readFileSync(resolve(out, 'A001_ORACLE_REPORT.json'), 
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 const row = (label, r) =>
   `| ${label} | ${r.gate} | ${r.predictions_evaluated} | ${pct(r.exact_label_action_rate)} | ${pct(r.score_in_expected_range_rate)} | ${pct(r.clue_exact_rate)} | ${pct(r.clue_within_1_rate)} | ${pct(Math.min(...Object.values(r.per_category_exact_rate)))} | ${r.safety_failures.length} | ${pct(r.consistency_rate)} |`;
-const cats = (r) => Object.entries(r.per_category_exact_rate).map(([k, v]) => `${k} ${pct(v)}`).join(', ');
+const cats = (r) =>
+  Object.entries(r.per_category_exact_rate)
+    .map(([k, v]) => `${k} ${pct(v)}`)
+    .join(', ');
 const md = `# A001 scorer evaluation — generated by \`npm run a001\`
 
 Generated: ${new Date().toISOString()}

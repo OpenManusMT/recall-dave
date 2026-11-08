@@ -46,7 +46,13 @@ export async function saveSettings(store: RecallStore, s: Settings): Promise<Set
 
 // --------------------------------------------------------------- documents
 
-function chunkRecords(docId: string, planned: PlannedChunk[], startIndex: number, target: number, now: Date): ChunkRecord[] {
+function chunkRecords(
+  docId: string,
+  planned: PlannedChunk[],
+  startIndex: number,
+  target: number,
+  now: Date,
+): ChunkRecord[] {
   return planned.map((p, i) => ({
     id: newId('chk'),
     documentId: docId,
@@ -62,13 +68,23 @@ function chunkRecords(docId: string, planned: PlannedChunk[], startIndex: number
   }));
 }
 
-export async function getDocumentChunks(store: RecallStore, documentId: string): Promise<ChunkRecord[]> {
+export async function getDocumentChunks(
+  store: RecallStore,
+  documentId: string,
+): Promise<ChunkRecord[]> {
   const all = await store.getAll('chunks');
-  return all.filter((c) => c.documentId === documentId && !c.superseded).sort((a, b) => a.index - b.index);
+  return all
+    .filter((c) => c.documentId === documentId && !c.superseded)
+    .sort((a, b) => a.index - b.index);
 }
 
 function chunkOptions(settings: Settings, target = currentChunkTarget(settings)) {
-  return { targetWords: target, minWords: settings.minChunkWords, maxWords: settings.maxChunkWords, maxIdeas: 3 };
+  return {
+    targetWords: target,
+    minWords: settings.minChunkWords,
+    maxWords: settings.maxChunkWords,
+    maxIdeas: 3,
+  };
 }
 
 /**
@@ -106,7 +122,8 @@ export async function openPassage(
   return { document, chunks };
 }
 
-export type PasteValidation = { ok: true; text: string; title: string } | { ok: false; error: string };
+export type PasteValidation =
+  { ok: true; text: string; title: string } | { ok: false; error: string };
 
 export function validatePastedReading(rawTitle: string, rawText: string): PasteValidation {
   const text = sanitiseReadingText(rawText ?? '');
@@ -117,10 +134,20 @@ export function validatePastedReading(rawTitle: string, rawText: string): PasteV
       error: `That text is too long (${text.length.toLocaleString('en-GB')} characters). Please paste up to ${MAX_PASTED_CHARS.toLocaleString('en-GB')} characters at a time.`,
     };
   }
-  if (countWords(text) < 15) return { ok: false, error: 'Please paste a little more text — at least a couple of sentences.' };
+  if (countWords(text) < 15)
+    return {
+      ok: false,
+      error: 'Please paste a little more text — at least a couple of sentences.',
+    };
   const title =
-    sanitiseReadingText(rawTitle ?? '').replace(/\s+/g, ' ').slice(0, MAX_TITLE_CHARS) ||
-    (splitParagraphs(text)[0] ?? 'My reading').split(/\s+/).slice(0, 6).join(' ').replace(/[.,;:]+$/, '') + '…';
+    sanitiseReadingText(rawTitle ?? '')
+      .replace(/\s+/g, ' ')
+      .slice(0, MAX_TITLE_CHARS) ||
+    (splitParagraphs(text)[0] ?? 'My reading')
+      .split(/\s+/)
+      .slice(0, 6)
+      .join(' ')
+      .replace(/[.,;:]+$/, '') + '…';
   return { ok: true, text, title };
 }
 
@@ -134,7 +161,11 @@ export async function createPastedDocument(
   if (!v.ok) throw new Error(v.error);
   const id = newId('doc');
   const target = currentChunkTarget(settings);
-  const planned = planPastedChunks(v.text, chunkOptions(settings, target), `${id}:${newId('p').slice(-6)}`);
+  const planned = planPastedChunks(
+    v.text,
+    chunkOptions(settings, target),
+    `${id}:${newId('p').slice(-6)}`,
+  );
   const document: ReadingDocument = {
     id,
     title: v.title,
@@ -178,7 +209,9 @@ export async function replanFrom(
     if (!first) return chunks;
     let sectionIdx = passage.sections.findIndex((s) => s.id === first.sectionIds[0]);
     const section = passage.sections[sectionIdx];
-    const startsSection = section ? section.text.replace(/\s+/g, ' ').startsWith(first.text.slice(0, 40)) : false;
+    const startsSection = section
+      ? section.text.replace(/\s+/g, ' ').startsWith(first.text.slice(0, 40))
+      : false;
     if (!startsSection) {
       // Partial section: keep this chunk and re-plan from the next whole section.
       const lastSection = first.sectionIds[first.sectionIds.length - 1];
@@ -188,7 +221,10 @@ export async function replanFrom(
     }
     planned = planAuthoredChunks(passage, opts, sectionIdx);
   } else {
-    const remaining = chunks.slice(start).map((c) => c.text).join('\n\n');
+    const remaining = chunks
+      .slice(start)
+      .map((c) => c.text)
+      .join('\n\n');
     if (!remaining.trim()) return chunks;
     planned = planPastedChunks(remaining, opts, `${documentId}:${newId('p').slice(-6)}`);
   }
@@ -248,25 +284,44 @@ export async function startSession(
   // Close any session left open (e.g. the app was closed mid-session).
   const open = (await store.getAll('sessions')).filter((s) => s.status === 'active');
   await store.batch([
-    ...open.map((s) => putOp('sessions', { ...s, status: 'finished' as const, endedAt: s.updatedAt, draft: null })),
+    ...open.map((s) =>
+      putOp('sessions', { ...s, status: 'finished' as const, endedAt: s.updatedAt, draft: null }),
+    ),
     putOp('sessions', session),
     putOp('settings', nextSettings),
   ]);
   return { session, settings: nextSettings };
 }
 
-export async function saveDraft(store: RecallStore, sessionId: string, draft: SessionDraft | null, now: Date) {
+export async function saveDraft(
+  store: RecallStore,
+  sessionId: string,
+  draft: SessionDraft | null,
+  now: Date,
+) {
   const s = await store.get('sessions', sessionId);
   if (!s || s.status !== 'active') return;
-  const safeDraft = draft ? { ...draft, recallText: draft.recallText.slice(0, MAX_RECALL_CHARS) } : null;
+  const safeDraft = draft
+    ? { ...draft, recallText: draft.recallText.slice(0, MAX_RECALL_CHARS) }
+    : null;
   await store.batch([putOp('sessions', { ...s, draft: safeDraft, updatedAt: toISO(now) })]);
 }
 
-export async function finishSession(store: RecallStore, sessionId: string, now: Date): Promise<SessionRecord | undefined> {
+export async function finishSession(
+  store: RecallStore,
+  sessionId: string,
+  now: Date,
+): Promise<SessionRecord | undefined> {
   const s = await store.get('sessions', sessionId);
   if (!s) return undefined;
   if (s.status === 'finished') return s;
-  const done: SessionRecord = { ...s, status: 'finished', endedAt: toISO(now), updatedAt: toISO(now), draft: null };
+  const done: SessionRecord = {
+    ...s,
+    status: 'finished',
+    endedAt: toISO(now),
+    updatedAt: toISO(now),
+    draft: null,
+  };
   await store.batch([putOp('sessions', done)]);
   return done;
 }
@@ -278,7 +333,9 @@ export async function logStrategy(
   chunkId: string | null,
   now: Date,
 ) {
-  await store.batch([putOp('strategy', { id: newId('str'), sessionId, strategy, chunkId, at: toISO(now) })]);
+  await store.batch([
+    putOp('strategy', { id: newId('str'), sessionId, strategy, chunkId, at: toISO(now) }),
+  ]);
 }
 
 // ---------------------------------------------------------------- attempts
@@ -310,7 +367,11 @@ export interface AttemptOutcome {
  * Record a finished chunk attempt and update every key idea's schedule —
  * atomically and idempotently (a repeated tap with the same attempt id is a no-op).
  */
-export async function recordAttempt(store: RecallStore, input: AttemptInput, now: Date): Promise<AttemptOutcome> {
+export async function recordAttempt(
+  store: RecallStore,
+  input: AttemptInput,
+  now: Date,
+): Promise<AttemptOutcome> {
   const existing = await store.get('attempts', input.attemptId);
   if (existing) {
     const logs = (await store.getAll('reviewLog')).filter((l) => l.attemptId === existing.id);
@@ -325,7 +386,8 @@ export async function recordAttempt(store: RecallStore, input: AttemptInput, now
   const ideaIds = new Set(chunk.ideas.map((i) => i.id));
   for (const c of input.ideas) {
     if (!ideaIds.has(c.ideaId)) throw new Error('Unknown key idea for this part.');
-    if (!Number.isInteger(c.clueLevel) || c.clueLevel < 0 || c.clueLevel > 5) throw new Error('Invalid clue level.');
+    if (!Number.isInteger(c.clueLevel) || c.clueLevel < 0 || c.clueLevel > 5)
+      throw new Error('Invalid clue level.');
   }
   const priorStates = new Map<string, MemoryState>();
   for (const c of input.ideas) {
@@ -333,8 +395,12 @@ export async function recordAttempt(store: RecallStore, input: AttemptInput, now
     if (st) priorStates.set(c.ideaId, st);
   }
   const firstExposure = input.kind !== 'review' && priorStates.size === 0;
-  const lastSeen = [...priorStates.values()].map((s) => s.lastReviewAt).sort().pop();
-  const elapsedDays = input.kind === 'review' && lastSeen ? Math.max(0, daysBetween(lastSeen, toISO(now))) : null;
+  const lastSeen = [...priorStates.values()]
+    .map((s) => s.lastReviewAt)
+    .sort()
+    .pop();
+  const elapsedDays =
+    input.kind === 'review' && lastSeen ? Math.max(0, daysBetween(lastSeen, toISO(now))) : null;
 
   const attempt: ChunkAttempt = {
     id: input.attemptId,
@@ -347,7 +413,11 @@ export async function recordAttempt(store: RecallStore, input: AttemptInput, now
     recallText: (input.recallText ?? '').slice(0, MAX_RECALL_CHARS),
     inputMethod: 'typed',
     textPeeks: Math.max(0, Math.floor(input.textPeeks)),
-    ideas: input.ideas.map((i) => ({ ideaId: i.ideaId, outcome: i.outcome, clueLevel: i.clueLevel })),
+    ideas: input.ideas.map((i) => ({
+      ideaId: i.ideaId,
+      outcome: i.outcome,
+      clueLevel: i.clueLevel,
+    })),
     question: input.question,
     tooMuch: input.tooMuch,
     firstExposure,
@@ -357,7 +427,10 @@ export async function recordAttempt(store: RecallStore, input: AttemptInput, now
   const ops: StoreOp[] = [putOp('attempts', attempt)];
   const logs: ReviewLogEntry[] = [];
   const states: MemoryState[] = [];
-  const schedule = input.kind === 'learn' || input.kind === 'review' || (input.kind === 'read' && input.addToReviews);
+  const schedule =
+    input.kind === 'learn' ||
+    input.kind === 'review' ||
+    (input.kind === 'read' && input.addToReviews);
   if (schedule) {
     for (const c of input.ideas) {
       const prev = priorStates.get(c.ideaId);
@@ -445,7 +518,13 @@ export async function dueReviewGroups(store: RecallStore, now: Date): Promise<Du
     const document = docById.get(st.documentId);
     const idea = chunk?.ideas.find((i) => i.id === st.id);
     if (!chunk || !document || !idea) continue;
-    const g = groups.get(chunk.id) ?? { chunk, document, ideas: [], states: [], dueAt: st.authoritativeNextAt };
+    const g = groups.get(chunk.id) ?? {
+      chunk,
+      document,
+      ideas: [],
+      states: [],
+      dueAt: st.authoritativeNextAt,
+    };
     g.ideas.push(idea);
     g.states.push(st);
     if (st.authoritativeNextAt < g.dueAt) g.dueAt = st.authoritativeNextAt;
@@ -455,7 +534,9 @@ export async function dueReviewGroups(store: RecallStore, now: Date): Promise<Du
     const order = new Map(g.chunk.ideas.map((i, k) => [i.id, k]));
     g.ideas.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
   }
-  return [...groups.values()].sort((a, b) => a.dueAt.localeCompare(b.dueAt) || a.chunk.index - b.chunk.index);
+  return [...groups.values()].sort(
+    (a, b) => a.dueAt.localeCompare(b.dueAt) || a.chunk.index - b.chunk.index,
+  );
 }
 
 /** Earliest upcoming authoritative review (for "Next review: tomorrow"). */
@@ -470,13 +551,17 @@ export async function nextReviewAt(store: RecallStore, now: Date): Promise<strin
 export async function deleteDocument(store: RecallStore, documentId: string): Promise<void> {
   const snap = await readSnapshot(store);
   const chunkIds = new Set(snap.chunks.filter((c) => c.documentId === documentId).map((c) => c.id));
-  const attemptIds = new Set(snap.attempts.filter((a) => a.documentId === documentId).map((a) => a.id));
+  const attemptIds = new Set(
+    snap.attempts.filter((a) => a.documentId === documentId).map((a) => a.id),
+  );
   const ops: StoreOp[] = [deleteOp('documents', documentId)];
   for (const id of chunkIds) ops.push(deleteOp('chunks', id));
   for (const m of snap.memory) if (m.documentId === documentId) ops.push(deleteOp('memory', m.id));
   for (const id of attemptIds) ops.push(deleteOp('attempts', id));
-  for (const l of snap.reviewLog) if (attemptIds.has(l.attemptId)) ops.push(deleteOp('reviewLog', l.id));
-  for (const s of snap.strategy) if (s.chunkId && chunkIds.has(s.chunkId)) ops.push(deleteOp('strategy', s.id));
+  for (const l of snap.reviewLog)
+    if (attemptIds.has(l.attemptId)) ops.push(deleteOp('reviewLog', l.id));
+  for (const s of snap.strategy)
+    if (s.chunkId && chunkIds.has(s.chunkId)) ops.push(deleteOp('strategy', s.id));
   for (const s of snap.sessions) {
     const keep = s.attemptIds.filter((id) => !attemptIds.has(id));
     const draftHit = s.draft?.documentId === documentId;
@@ -509,7 +594,10 @@ export function suggestNextPassage(
 }
 
 /** The next fresh-text probe never attempted before (null when all have been used). */
-export function suggestNextProbe(passages: AuthoredPassage[], documents: ReadingDocument[]): AuthoredPassage | null {
+export function suggestNextProbe(
+  passages: AuthoredPassage[],
+  documents: ReadingDocument[],
+): AuthoredPassage | null {
   const used = new Set(documents.filter((d) => d.provenance === 'probe').map((d) => d.passageId));
   return passages.find((p) => p.kind === 'probe' && !used.has(p.id)) ?? null;
 }

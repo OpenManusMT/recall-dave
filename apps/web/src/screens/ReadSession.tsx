@@ -28,12 +28,20 @@ interface Loaded {
   index: number;
 }
 
-export function ReadSession({ passageId, documentId, mode }: { passageId?: string; documentId?: string; mode: ReadMode }) {
+export function ReadSession({
+  passageId,
+  documentId,
+  mode,
+}: {
+  passageId?: string;
+  documentId?: string;
+  mode: ReadMode;
+}) {
   const { store, settings, now, updateSettings } = useApp();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [flowKey, setFlowKey] = useState(0);
-  const passage = passageId ? findPassage(passageId) ?? null : null;
+  const passage = passageId ? (findPassage(passageId) ?? null) : null;
 
   useEffect(() => {
     let alive = true;
@@ -42,7 +50,8 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
         let document: ReadingDocument | undefined;
         let chunks: ChunkRecord[] = [];
         if (passage) {
-          if (mode === 'probe' && passage.kind !== 'probe') throw new Error('That is not a fresh-text passage.');
+          if (mode === 'probe' && passage.kind !== 'probe')
+            throw new Error('That is not a fresh-text passage.');
           const r = await openPassage(store, passage, settings, now());
           document = r.document;
           chunks = r.chunks;
@@ -50,12 +59,21 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
           document = await store.get('documents', documentId);
           if (document) chunks = await getDocumentChunks(store, document.id);
         }
-        if (!document) throw new Error('This reading could not be found. It may have been deleted.');
+        if (!document)
+          throw new Error('This reading could not be found. It may have been deleted.');
         const active = await getActiveSession(store);
         const sessionMode = mode === 'read' ? 'read' : 'remember';
-        const session = active && active.mode === sessionMode ? active : (await startSession(store, sessionMode, now())).session;
+        const session =
+          active && active.mode === sessionMode
+            ? active
+            : (await startSession(store, sessionMode, now())).session;
         if (!alive) return;
-        setLoaded({ session, document, chunks, index: Math.min(document.nextChunkIndex, chunks.length) });
+        setLoaded({
+          session,
+          document,
+          chunks,
+          index: Math.min(document.nextChunkIndex, chunks.length),
+        });
       } catch (e) {
         if (alive) setError((e as Error).message);
       }
@@ -72,9 +90,18 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
     const chunk = loaded.chunks[loaded.index];
     if (!chunk) return null;
     const target = tooMuchTarget(settings, chunk.wordCount);
-    const patch = settings.chunkMode === 'fixed' ? { fixedChunkWords: target } : { adaptiveChunkWords: target };
+    const patch =
+      settings.chunkMode === 'fixed' ? { fixedChunkWords: target } : { adaptiveChunkWords: target };
     await updateSettings(patch);
-    const replanned = await replanFrom(store, loaded.document.id, loaded.index, target, { ...settings, ...patch }, passage, now());
+    const replanned = await replanFrom(
+      store,
+      loaded.document.id,
+      loaded.index,
+      target,
+      { ...settings, ...patch },
+      passage,
+      now(),
+    );
     setLoaded({ ...loaded, chunks: replanned });
     return replanned[loaded.index] ?? null;
   }, [loaded, settings, updateSettings, store, passage, now]);
@@ -124,7 +151,11 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
         backLabel="Pause"
         right={
           <span className="pill blue">
-            {mode === 'read' ? 'Help me read' : mode === 'probe' ? 'Fresh-text check' : 'Help me remember'}
+            {mode === 'read'
+              ? 'Help me read'
+              : mode === 'probe'
+                ? 'Fresh-text check'
+                : 'Help me remember'}
           </span>
         }
       />
@@ -156,7 +187,11 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
             ) : (
               <p className="card good">You have finished “{document.title}”.</p>
             )}
-            <button type="button" className={`btn block ${isLast ? 'primary large' : 'secondary'}`} onClick={() => void finish()}>
+            <button
+              type="button"
+              className={`btn block ${isLast ? 'primary large' : 'secondary'}`}
+              onClick={() => void finish()}
+            >
               {isLast ? 'Finish session' : 'Finish for now'}
             </button>
           </>

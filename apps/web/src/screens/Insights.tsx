@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { computeInsights, readSnapshot, type Insights as InsightsData, type Metric, type WeekPoint } from '@recall/core';
+import {
+  computeInsights,
+  readSnapshot,
+  type Insights as InsightsData,
+  type Metric,
+  type WeekPoint,
+} from '@recall/core';
 import { useApp } from '../lib/app-context';
 import { href } from '../lib/router';
 
@@ -8,7 +14,11 @@ function MetricCard({ m }: { m: Metric }) {
     <div className="card metric">
       <span className="small muted">{m.label}</span>
       <span className={`value ${m.value === null ? 'unmeasured' : ''}`}>{m.display}</span>
-      {m.n > 0 ? <span className="small muted">Based on {m.n} {m.n === 1 ? 'check' : 'checks'}</span> : null}
+      {m.n > 0 ? (
+        <span className="small muted">
+          Based on {m.n} {m.n === 1 ? 'check' : 'checks'}
+        </span>
+      ) : null}
       <span className="small muted">{m.explanation}</span>
     </div>
   );
@@ -21,11 +31,20 @@ function WeeklyChart({ weeks }: { weeks: WeekPoint[] }) {
   const bw = (w - pad * 2) / weeks.length;
   const bar = (v: number | null) => (v === null ? 0 : v * (h - pad * 2));
   const any = weeks.some((x) => x.practisedN > 0 || x.freshN > 0);
-  if (!any) return <p className="muted">Not measured yet. Weekly results appear here after reviews and fresh-text checks.</p>;
+  if (!any)
+    return (
+      <p className="muted">
+        Not measured yet. Weekly results appear here after reviews and fresh-text checks.
+      </p>
+    );
   const label = weeks
     .map((x) => {
-      const d = new Date(x.weekStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      const p = x.practisedDelayed === null ? 'not measured' : `${Math.round(x.practisedDelayed * 100)}%`;
+      const d = new Date(x.weekStart).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+      });
+      const p =
+        x.practisedDelayed === null ? 'not measured' : `${Math.round(x.practisedDelayed * 100)}%`;
       const f = x.fresh === null ? 'not measured' : `${Math.round(x.fresh * 100)}%`;
       return `Week of ${d}: practised ${p}, fresh ${f}`;
     })
@@ -39,11 +58,28 @@ function WeeklyChart({ weeks }: { weeks: WeekPoint[] }) {
           const half = (bw - 8) / 2;
           return (
             <g key={x.weekStart}>
-              <rect x={x0} y={h - pad - bar(x.practisedDelayed)} width={half - 1} height={bar(x.practisedDelayed)} fill="var(--primary)" rx={2} />
-              <rect x={x0 + half} y={h - pad - bar(x.fresh)} width={half - 1} height={bar(x.fresh)} fill="var(--accent)" rx={2} />
+              <rect
+                x={x0}
+                y={h - pad - bar(x.practisedDelayed)}
+                width={half - 1}
+                height={bar(x.practisedDelayed)}
+                fill="var(--primary)"
+                rx={2}
+              />
+              <rect
+                x={x0 + half}
+                y={h - pad - bar(x.fresh)}
+                width={half - 1}
+                height={bar(x.fresh)}
+                fill="var(--accent)"
+                rx={2}
+              />
               {i % 2 === weeks.length % 2 ? (
                 <text x={x0 + half} y={h - 8} textAnchor="middle">
-                  {new Date(x.weekStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  {new Date(x.weekStart).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                  })}
                 </text>
               ) : null}
             </g>
@@ -62,7 +98,9 @@ export function Insights() {
   const { store, settings, now, dataVersion } = useApp();
   const [data, setData] = useState<InsightsData | null>(null);
   useEffect(() => {
-    void readSnapshot(store).then((s) => setData(computeInsights({ attempts: s.attempts, reviewLog: s.reviewLog, settings }, now())));
+    void readSnapshot(store).then((s) =>
+      setData(computeInsights({ attempts: s.attempts, reviewLog: s.reviewLog, settings }, now())),
+    );
   }, [store, settings, now, dataVersion]);
   if (!data) return <p role="status">Loading…</p>;
   const p = data.practised;
@@ -71,8 +109,9 @@ export function Insights() {
     <div className="stack-lg">
       <h1>Progress</h1>
       <p className="muted">
-        These describe your reading practice only. They are not a test score and say nothing about health. Practised material and
-        fresh text are kept apart, so getting better at familiar pieces is never counted as improvement on new reading.
+        These describe your reading practice only. They are not a test score and say nothing about
+        health. Practised material and fresh text are kept apart, so getting better at familiar
+        pieces is never counted as improvement on new reading.
       </p>
 
       <section className="stack" aria-labelledby="pr-h">
@@ -110,8 +149,9 @@ export function Insights() {
           {data.chunkMode === 'fixed' ? '(you chose this size).' : '(adjusted automatically).'}
         </p>
         <p className="small muted" style={{ margin: 0 }}>
-          The size changes slowly, at most once per session, based on how recent new parts were remembered the next day. These
-          are starting rules, not medically tested ones. You can choose a fixed size in Settings.
+          The size changes slowly, at most once per session, based on how recent new parts were
+          remembered the next day. These are starting rules, not medically tested ones. You can
+          choose a fixed size in Settings.
         </p>
       </section>
 

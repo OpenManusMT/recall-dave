@@ -17,7 +17,9 @@ export const TEST_PASSAGE: AuthoredPassage = {
         {
           id: 's1-i1',
           text: 'Boiling hard water leaves minerals behind as a chalky layer called limescale.',
-          sourceSpans: ['some of these minerals are left behind as a chalky layer called limescale'],
+          sourceSpans: [
+            'some of these minerals are left behind as a chalky layer called limescale',
+          ],
           qualifiers: [],
           relation: 'cause_effect',
           topic: 'what boiling hard water leaves behind',
@@ -38,7 +40,11 @@ export const TEST_PASSAGE: AuthoredPassage = {
       question: {
         id: 's1-q1',
         prompt: 'Why does limescale matter?',
-        options: ['It changes the colour of tea', 'It makes the kettle slower to boil', 'It makes water softer'],
+        options: [
+          'It changes the colour of tea',
+          'It makes the kettle slower to boil',
+          'It makes water softer',
+        ],
         answerIndex: 1,
         explanationSpan: 'makes the kettle less efficient, so it usually takes longer to boil',
       },
@@ -71,7 +77,11 @@ export const TEST_PASSAGE: AuthoredPassage = {
       question: {
         id: 's2-q1',
         prompt: 'What should you do before making a drink?',
-        options: ['Boil a kettle of fresh water', 'Add more citric acid', 'Leave the kettle empty overnight'],
+        options: [
+          'Boil a kettle of fresh water',
+          'Add more citric acid',
+          'Leave the kettle empty overnight',
+        ],
         answerIndex: 0,
         explanationSpan: 'boil a full kettle of fresh water before making a drink',
       },

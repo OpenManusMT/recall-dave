@@ -45,8 +45,9 @@ export function ReviewsOverview() {
       ) : (
         <>
           <p className="muted">
-            {points === 1 ? '1 point is' : `${points} points are`} ready to remember again, from {groups.length}{' '}
-            {groups.length === 1 ? 'part' : 'parts'}. You try first, then check — no time limit.
+            {points === 1 ? '1 point is' : `${points} points are`} ready to remember again, from{' '}
+            {groups.length} {groups.length === 1 ? 'part' : 'parts'}. You try first, then check — no
+            time limit.
           </p>
           <a className="btn primary block large" href={href('/reviews/run')}>
             <Icon name="review" /> Start reviews
@@ -57,13 +58,16 @@ export function ReviewsOverview() {
                 <div className="grow">
                   <div className="title">{g.document.title}</div>
                   <div className="small muted">
-                    Part {g.chunk.index + 1} · {g.ideas.length} {g.ideas.length === 1 ? 'point' : 'points'}
+                    Part {g.chunk.index + 1} · {g.ideas.length}{' '}
+                    {g.ideas.length === 1 ? 'point' : 'points'}
                   </div>
                 </div>
               </li>
             ))}
           </ul>
-          <p className="small muted">Review dates use simple fixed steps (1, 3, 7, 14, 30, 60, 120 days).</p>
+          <p className="small muted">
+            Review dates use simple fixed steps (1, 3, 7, 14, 30, 60, 120 days).
+          </p>
         </>
       )}
     </div>
@@ -81,7 +85,10 @@ export function ReviewRun({ thenRead }: { thenRead: boolean }) {
     (async () => {
       const g = await dueReviewGroups(store, now());
       const active = await getActiveSession(store);
-      const s = active && active.mode === 'remember' ? active : (await startSession(store, 'remember', now())).session;
+      const s =
+        active && active.mode === 'remember'
+          ? active
+          : (await startSession(store, 'remember', now())).session;
       if (alive) {
         setGroups(g);
         setSession(s);
@@ -110,14 +117,24 @@ export function ReviewRun({ thenRead }: { thenRead: boolean }) {
         <TopBar back="/" backLabel="Home" />
         <h1>{groups.length === 0 ? 'No reviews are due' : 'Reviews done'}</h1>
         <p className="muted">
-          {groups.length === 0 ? 'Nothing to review right now.' : 'Thank you. Your review dates have been updated.'}
+          {groups.length === 0
+            ? 'Nothing to review right now.'
+            : 'Thank you. Your review dates have been updated.'}
         </p>
         {thenRead ? (
-          <button type="button" className="btn primary block large" onClick={() => void continueReading()}>
+          <button
+            type="button"
+            className="btn primary block large"
+            onClick={() => void continueReading()}
+          >
             Now read something new
           </button>
         ) : null}
-        <button type="button" className={`btn block ${thenRead ? 'secondary' : 'primary large'}`} onClick={() => void finish()}>
+        <button
+          type="button"
+          className={`btn block ${thenRead ? 'secondary' : 'primary large'}`}
+          onClick={() => void finish()}
+        >
           Finish session
         </button>
       </div>
@@ -127,7 +144,11 @@ export function ReviewRun({ thenRead }: { thenRead: boolean }) {
   const g = groups[i] as DueGroup;
   return (
     <div className="stack">
-      <TopBar back={() => navigate('/')} backLabel="Pause" right={<span className="pill blue">Review</span>} />
+      <TopBar
+        back={() => navigate('/')}
+        backLabel="Pause"
+        right={<span className="pill blue">Review</span>}
+      />
       <ChunkFlow
         key={g.chunk.id}
         kind="review"

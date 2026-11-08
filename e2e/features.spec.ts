@@ -3,12 +3,17 @@ import { readFileSync } from 'node:fs';
 import { DAY0, DAY1, doChunk, openApp, skipOnboarding } from './helpers';
 
 async function noHorizontalOverflow(page: Page) {
-  const { sw, cw } = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+  const { sw, cw } = await page.evaluate(() => ({
+    sw: document.documentElement.scrollWidth,
+    cw: document.documentElement.clientWidth,
+  }));
   expect(sw, 'page must not scroll sideways').toBeLessThanOrEqual(cw + 1);
 }
 
 test.describe('onboarding and settings', () => {
-  test('onboarding sets text size and input preference; settings persist across reload', async ({ page }) => {
+  test('onboarding sets text size and input preference; settings persist across reload', async ({
+    page,
+  }) => {
     await openApp(page);
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('radio', { name: 'Very large' }).click();
@@ -16,12 +21,20 @@ test.describe('onboarding and settings', () => {
     await page.getByRole('radio', { name: /Speaking/ }).click();
     await page.getByRole('button', { name: 'Start' }).click();
     await expect(page.getByRole('heading', { name: 'Recall', exact: true })).toBeVisible();
-    const scale = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--scale'));
+    const scale = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--scale'),
+    );
     expect(scale.trim()).toBe('1.5');
     await page.reload();
     await page.getByRole('link', { name: 'Settings' }).click();
-    await expect(page.getByRole('radio', { name: 'Very large' })).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByRole('radio', { name: 'Speak' })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('radio', { name: 'Very large' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await expect(page.getByRole('radio', { name: 'Speak' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
     await page.getByRole('radio', { name: 'Dark' }).click();
     await page.getByLabel('High contrast').check();
     await page.reload();
@@ -37,15 +50,22 @@ test.describe('reading flows', () => {
     await skipOnboarding(page);
   });
 
-  test('“Help me read this” keeps the text visible with main points and a question', async ({ page }) => {
+  test('“Help me read this” keeps the text visible with main points and a question', async ({
+    page,
+  }) => {
     await page.getByRole('link', { name: 'Read', exact: true }).click();
     await page.getByRole('radio', { name: 'Help me read this' }).click();
-    await page.getByRole('link', { name: /Canal locks|canal/i }).first().click();
+    await page
+      .getByRole('link', { name: /Canal locks|canal/i })
+      .first()
+      .click();
     await expect(page.getByRole('heading', { name: 'Read this part' })).toBeVisible();
     await page.getByRole('button', { name: 'Explain this part' }).click();
     await expect(page.getByRole('heading', { name: 'Main points' })).toBeVisible();
     await expect(page.locator('.quote').first()).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Answer the question to continue' })).toBeDisabled();
+    await expect(
+      page.getByRole('button', { name: 'Answer the question to continue' }),
+    ).toBeDisabled();
     await page.getByRole('radio').first().click();
     await expect(page.getByText(/That’s right|Not quite/)).toBeVisible();
     await page.getByRole('button', { name: 'Next' }).click();
@@ -78,7 +98,9 @@ test.describe('reading flows', () => {
     await page.getByRole('button', { name: 'No, mine was different' }).click();
     await expect(page.getByText(/Now you have seen this point/)).toBeVisible();
     await page.getByRole('button', { name: 'Save and continue' }).click();
-    await expect(page.getByRole('heading', { name: /Well done for working through it/ })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Well done for working through it/ }),
+    ).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/wrong|fail|incorrect/i);
   });
 
@@ -90,14 +112,19 @@ test.describe('reading flows', () => {
     await expect(page.getByRole('button', { name: 'Too much text' })).toBeDisabled();
     const after = await page.locator('.reading-text').innerText();
     expect(after.length).toBeLessThanOrEqual(before.length);
-    await page.getByRole('link', { name: /Pause/ }).or(page.getByRole('button', { name: 'Pause' })).click();
+    await page
+      .getByRole('link', { name: /Pause/ })
+      .or(page.getByRole('button', { name: 'Pause' }))
+      .click();
     await page.getByRole('link', { name: 'Progress' }).click();
     const size = Number((await page.locator('#sz-h + p strong').innerText()).match(/\d+/)?.[0]);
     expect(size).toBeLessThan(80);
     expect(size).toBeGreaterThanOrEqual(40);
   });
 
-  test('pasted reading is stored as plain text: scripts and links are never run or opened', async ({ page }) => {
+  test('pasted reading is stored as plain text: scripts and links are never run or opened', async ({
+    page,
+  }) => {
     await page.getByRole('link', { name: 'Read', exact: true }).click();
     await page.getByRole('link', { name: 'Paste your own reading' }).click();
     const hostile =
@@ -108,13 +135,18 @@ test.describe('reading flows', () => {
     await page.getByLabel('Title (optional)').fill('Garden notice');
     await page.getByRole('button', { name: 'Save and start reading' }).click();
     await expect(page.locator('.reading-text')).toContainText('<script>window.__pwned=2</script>');
-    expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();
+    expect(
+      await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned),
+    ).toBeUndefined();
     await expect(page.locator('.reading-text a')).toHaveCount(0);
     await page.getByRole('button', { name: 'Explain this part' }).click();
     await expect(page.getByRole('heading', { name: 'Key sentences' })).toBeVisible();
     await expect(page.getByText(/not AI/)).toBeVisible();
     await doChunk(page, 'Garden opens at nine, tools in the shed', ['own', 'own', 'own']);
-    await page.getByRole('button', { name: /Finish/ }).first().click();
+    await page
+      .getByRole('button', { name: /Finish/ })
+      .first()
+      .click();
     // Delete the reading and everything about it.
     await page.goto(`./?now=${DAY0}#/library`);
     await page.getByRole('button', { name: 'Delete “Garden notice”' }).click();
@@ -157,7 +189,10 @@ test.describe('reading flows', () => {
     await expect(page.getByRole('button', { name: 'Explain this part' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Too much text' })).toHaveCount(0);
     await doChunk(page, 'Leaves change colour because green fades', ['own', 'hint']);
-    await page.getByRole('button', { name: /Finish/ }).first().click();
+    await page
+      .getByRole('button', { name: /Finish/ })
+      .first()
+      .click();
     await page.goto(`./?now=${DAY0}#/insights`);
     await expect(page.getByRole('row', { name: /Fresh-text checks/ })).toContainText('1');
     await expect(page.getByRole('row', { name: /Parts read/ })).toContainText('0');
@@ -167,7 +202,9 @@ test.describe('reading flows', () => {
 });
 
 test.describe('your data', () => {
-  test('export → delete all → import restores everything; damaged files change nothing', async ({ page }, testInfo) => {
+  test('export → delete all → import restores everything; damaged files change nothing', async ({
+    page,
+  }, testInfo) => {
     await openApp(page);
     await skipOnboarding(page);
     await page.getByRole('button', { name: /Start a session/ }).click();
@@ -175,7 +212,10 @@ test.describe('your data', () => {
     await page.getByRole('button', { name: 'Finish for now' }).click();
 
     await page.goto(`./?now=${DAY0}#/settings`);
-    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export backup' }).click()]);
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Export backup' }).click(),
+    ]);
     const path = testInfo.outputPath('backup.json');
     await download.saveAs(path);
     const backup = JSON.parse(readFileSync(path, 'utf-8'));
@@ -191,7 +231,13 @@ test.describe('your data', () => {
 
     // Damaged file: clear error, nothing changed.
     await page.goto(`./?now=${DAY1}#/settings`);
-    await page.getByTestId('import-file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"format":"recall-backup","schemaVersion":2,"exportedAt":"2026-11-09T10:00:00Z","data":{"memory":[{"id":1}]}}') });
+    await page.getByTestId('import-file').setInputFiles({
+      name: 'bad.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(
+        '{"format":"recall-backup","schemaVersion":2,"exportedAt":"2026-11-09T10:00:00Z","data":{"memory":[{"id":1}]}}',
+      ),
+    });
     await expect(page.getByRole('alert')).toContainText(/damaged/);
 
     await page.getByTestId('import-file').setInputFiles(path);
@@ -204,7 +250,15 @@ test.describe('your data', () => {
 });
 
 test.describe('layout', () => {
-  for (const hash of ['#/', '#/library', '#/reviews', '#/insights', '#/settings', '#/add', '#/read/p08-garden-hedgehogs']) {
+  for (const hash of [
+    '#/',
+    '#/library',
+    '#/reviews',
+    '#/insights',
+    '#/settings',
+    '#/add',
+    '#/read/p08-garden-hedgehogs',
+  ]) {
     test(`no sideways scrolling at narrow and rotated sizes: ${hash}`, async ({ page }) => {
       await openApp(page);
       await skipOnboarding(page);
@@ -220,7 +274,9 @@ test.describe('layout', () => {
     });
   }
 
-  test('keyboard-only: skip link, focus moves to content on navigation, Enter activates', async ({ page }) => {
+  test('keyboard-only: skip link, focus moves to content on navigation, Enter activates', async ({
+    page,
+  }) => {
     await openApp(page);
     await skipOnboarding(page);
     // After a screen change focus is placed on the main region.
@@ -233,7 +289,11 @@ test.describe('layout', () => {
     await page.keyboard.press('Enter');
     await expect(page.locator('main')).toBeFocused();
     for (let i = 0; i < 8; i++) {
-      const name = await page.evaluate(() => (document.activeElement?.tagName === 'BUTTON' ? document.activeElement.textContent ?? '' : ''));
+      const name = await page.evaluate(() =>
+        document.activeElement?.tagName === 'BUTTON'
+          ? (document.activeElement.textContent ?? '')
+          : '',
+      );
       if (/Start a session/.test(name)) break;
       await page.keyboard.press('Tab');
     }
@@ -249,8 +309,14 @@ test.describe('layout', () => {
       await openApp(page, DAY0, hash);
       const small = await page.evaluate(() =>
         [...document.querySelectorAll('button, a.btn, .tabbar a, .list-item, label.toggle')]
-          .filter((el) => (el as HTMLElement).offsetParent !== null && !el.classList.contains('skip-link'))
-          .map((el) => ({ t: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 30), r: el.getBoundingClientRect() }))
+          .filter(
+            (el) =>
+              (el as HTMLElement).offsetParent !== null && !el.classList.contains('skip-link'),
+          )
+          .map((el) => ({
+            t: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 30),
+            r: el.getBoundingClientRect(),
+          }))
           .filter(({ r }) => r.width < 44 || r.height < 44)
           .map(({ t, r }) => `${t} ${Math.round(r.width)}x${Math.round(r.height)}`),
       );

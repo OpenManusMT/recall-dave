@@ -1,5 +1,21 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getSettings, MemoryStore, normaliseSettings, saveSettings, type RecallStore, type Settings, DEFAULT_SETTINGS } from '@recall/core';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  getSettings,
+  MemoryStore,
+  normaliseSettings,
+  saveSettings,
+  type RecallStore,
+  type Settings,
+  DEFAULT_SETTINGS,
+} from '@recall/core';
 import { IdbStore } from './idb-store';
 
 export type Persistence = 'persistent' | 'best-effort' | 'memory-only';
@@ -28,7 +44,8 @@ export function useApp(): AppState {
 function applySettingsToDocument(s: Settings) {
   const root = document.documentElement;
   const dark =
-    s.theme === 'dark' || (s.theme === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+    s.theme === 'dark' ||
+    (s.theme === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
   root.dataset.theme = dark ? 'dark' : 'light';
   root.dataset.contrast = s.highContrast ? 'high' : 'normal';
   root.dataset.font = s.readingFont;
@@ -54,8 +71,10 @@ export async function openBestStore(): Promise<{ store: RecallStore; persistence
     const store = await IdbStore.open();
     let persistence: Persistence = 'best-effort';
     try {
-      if (navigator.storage?.persisted && (await navigator.storage.persisted())) persistence = 'persistent';
-      else if (navigator.storage?.persist && (await navigator.storage.persist())) persistence = 'persistent';
+      if (navigator.storage?.persisted && (await navigator.storage.persisted()))
+        persistence = 'persistent';
+      else if (navigator.storage?.persist && (await navigator.storage.persist()))
+        persistence = 'persistent';
     } catch {
       /* not supported: best effort */
     }
@@ -65,7 +84,15 @@ export async function openBestStore(): Promise<{ store: RecallStore; persistence
   }
 }
 
-export function AppProvider({ children, initialStore, initialPersistence }: { children: ReactNode; initialStore: RecallStore; initialPersistence: Persistence }) {
+export function AppProvider({
+  children,
+  initialStore,
+  initialPersistence,
+}: {
+  children: ReactNode;
+  initialStore: RecallStore;
+  initialPersistence: Persistence;
+}) {
   const [store] = useState(initialStore);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [ready, setReady] = useState(false);
@@ -84,7 +111,9 @@ export function AppProvider({ children, initialStore, initialPersistence }: { ch
       })
       .catch(() => {
         setReady(true);
-        setError('Recall could not read its saved data. You can still read, but progress may not be saved.');
+        setError(
+          'Recall could not read its saved data. You can still read, but progress may not be saved.',
+        );
       });
     return () => {
       alive = false;
@@ -116,7 +145,17 @@ export function AppProvider({ children, initialStore, initialPersistence }: { ch
   const refresh = useCallback(() => setDataVersion((v) => v + 1), []);
 
   const value = useMemo<AppState>(
-    () => ({ store, settings, updateSettings, dataVersion, refresh, persistence: initialPersistence, error, setError, now }),
+    () => ({
+      store,
+      settings,
+      updateSettings,
+      dataVersion,
+      refresh,
+      persistence: initialPersistence,
+      error,
+      setError,
+      now,
+    }),
     [store, settings, updateSettings, dataVersion, refresh, initialPersistence, error, now],
   );
   if (!ready) return <div className="main" aria-busy="true" />;

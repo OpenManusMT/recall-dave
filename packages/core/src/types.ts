@@ -8,21 +8,24 @@ export type ClueLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
 export const CLUE_LEVELS: readonly { level: ClueLevel; name: string; description: string }[] = [
   { level: 0, name: 'Independent recall', description: 'Remembered without any help.' },
-  { level: 1, name: 'Structural cue', description: 'Told how many points there were and what one is about.' },
+  {
+    level: 1,
+    name: 'Structural cue',
+    description: 'Told how many points there were and what one is about.',
+  },
   { level: 2, name: 'Semantic cue', description: 'Given a hint about the meaning.' },
   { level: 3, name: 'Strong cue', description: 'Shown the sentence with key words missing.' },
-  { level: 4, name: 'Source sentence', description: 'Shown the supporting sentence from the text.' },
+  {
+    level: 4,
+    name: 'Source sentence',
+    description: 'Shown the supporting sentence from the text.',
+  },
   { level: 5, name: 'Full reread', description: 'Read the whole part again.' },
 ];
 
 /** Recall labels shared with the A001 contract. Self-check produces only the first three. */
 export type RecallLabel =
-  | 'correct'
-  | 'partial'
-  | 'incorrect'
-  | 'contradiction'
-  | 'vague'
-  | 'asr_uncertain';
+  'correct' | 'partial' | 'incorrect' | 'contradiction' | 'vague' | 'asr_uncertain';
 
 export type RecallAction =
   | 'accept'
@@ -202,7 +205,12 @@ export interface AdaptationDecision {
   fromWords: number;
   toWords: number;
   reason: string;
-  window: { chunks: number; delayedRecall: number | null; comprehension: number | null; clueDependence: number | null };
+  window: {
+    chunks: number;
+    delayedRecall: number | null;
+    comprehension: number | null;
+    clueDependence: number | null;
+  };
 }
 
 export interface SessionDraft {

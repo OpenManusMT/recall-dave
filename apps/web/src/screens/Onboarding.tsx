@@ -102,7 +102,12 @@ export function Onboarding() {
 
 export function Finish({ sessionId }: { sessionId: string }) {
   const { store, now } = useApp();
-  const [summary, setSummary] = useState<{ parts: number; points: number; own: number; reviews: number } | null>(null);
+  const [summary, setSummary] = useState<{
+    parts: number;
+    points: number;
+    own: number;
+    reviews: number;
+  } | null>(null);
   useEffect(() => {
     void (async () => {
       const snap = await readSnapshot(store);
@@ -125,23 +130,32 @@ export function Finish({ sessionId }: { sessionId: string }) {
       {summary ? (
         <div className="card good stack">
           {summary.parts + summary.reviews === 0 ? (
-            <p style={{ margin: 0 }}>Nothing was saved in this session. That’s fine — come back whenever you like.</p>
+            <p style={{ margin: 0 }}>
+              Nothing was saved in this session. That’s fine — come back whenever you like.
+            </p>
           ) : (
             <>
               <p style={{ margin: 0 }}>
                 You read {summary.parts} {summary.parts === 1 ? 'part' : 'parts'}
-                {summary.reviews > 0 ? ` and did ${summary.reviews} ${summary.reviews === 1 ? 'review' : 'reviews'}` : ''}.
+                {summary.reviews > 0
+                  ? ` and did ${summary.reviews} ${summary.reviews === 1 ? 'review' : 'reviews'}`
+                  : ''}
+                .
               </p>
               {summary.points > 0 ? (
                 <p style={{ margin: 0 }}>
-                  You checked {summary.points} {summary.points === 1 ? 'point' : 'points'}; {summary.own} on your own.
+                  You checked {summary.points} {summary.points === 1 ? 'point' : 'points'};{' '}
+                  {summary.own} on your own.
                 </p>
               ) : null}
             </>
           )}
         </div>
       ) : null}
-      <p className="muted">Your progress is saved on this device. The points will come back under Reviews when they are due.</p>
+      <p className="muted">
+        Your progress is saved on this device. The points will come back under Reviews when they are
+        due.
+      </p>
       <a className="btn primary block large" href={href('/')}>
         Back to home
       </a>

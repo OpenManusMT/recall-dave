@@ -18,7 +18,8 @@ export function App() {
   const { settings, store, now, dataVersion, error, setError } = useApp();
   const [due, setDue] = useState(0);
   const [first] = route.segments;
-  const focused = FOCUSED.includes(first ?? '') || (first === 'reviews' && route.segments[1] === 'run');
+  const focused =
+    FOCUSED.includes(first ?? '') || (first === 'reviews' && route.segments[1] === 'run');
 
   useEffect(() => {
     if (!settings.onboardingDone && first !== 'welcome') navigate('/welcome', { replace: true });
@@ -83,7 +84,12 @@ export function App() {
       screen = <ReadSession key={route.path} passageId={route.segments[1]} mode="probe" />;
       break;
     case 'reviews':
-      screen = route.segments[1] === 'run' ? <ReviewRun key={route.path} thenRead={route.query.get('then') === 'read'} /> : <ReviewsOverview />;
+      screen =
+        route.segments[1] === 'run' ? (
+          <ReviewRun key={route.path} thenRead={route.query.get('then') === 'read'} />
+        ) : (
+          <ReviewsOverview />
+        );
       break;
     case 'insights':
       screen = <Insights />;
@@ -107,7 +113,14 @@ export function App() {
 
   return (
     <div className="app">
-      <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('main')?.focus();
+        }}
+      >
         Skip to content
       </a>
       <main id="main" tabIndex={-1} className={`main ${focused ? 'focused' : ''}`}>

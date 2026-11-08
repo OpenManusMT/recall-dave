@@ -110,7 +110,9 @@ export const recordSchemas = {
     inputMethod: z.literal('typed'),
     textPeeks: z.number().int().min(0),
     ideas: z.array(z.object({ ideaId: id, outcome, clueLevel: clue })).max(3),
-    question: z.object({ questionId: id, chosenIndex: z.number().int().min(0), correct: z.boolean() }).nullable(),
+    question: z
+      .object({ questionId: id, chosenIndex: z.number().int().min(0), correct: z.boolean() })
+      .nullable(),
     tooMuch: z.boolean(),
     firstExposure: z.boolean(),
     elapsedDays: z.number().min(0).nullable(),
@@ -220,13 +222,21 @@ export function migrateBackupData(data: RawData, fromVersion: number): RawData {
 }
 
 export type ParseResult =
-  | { ok: true; snapshot: Snapshot; migratedFrom: number | null; warnings: string[]; counts: Record<string, number> }
+  | {
+      ok: true;
+      snapshot: Snapshot;
+      migratedFrom: number | null;
+      warnings: string[];
+      counts: Record<string, number>;
+    }
   | { ok: false; error: string };
 
 /** Parse and fully validate a backup file. Never throws; never touches storage. */
 export function parseBackup(text: string): ParseResult {
-  if (typeof text !== 'string' || text.length === 0) return { ok: false, error: 'The file is empty.' };
-  if (text.length > MAX_BACKUP_BYTES) return { ok: false, error: 'The file is too large to be a Recall backup.' };
+  if (typeof text !== 'string' || text.length === 0)
+    return { ok: false, error: 'The file is empty.' };
+  if (text.length > MAX_BACKUP_BYTES)
+    return { ok: false, error: 'The file is too large to be a Recall backup.' };
   let json: unknown;
   try {
     json = JSON.parse(text);
@@ -234,10 +244,14 @@ export function parseBackup(text: string): ParseResult {
     return { ok: false, error: 'This file is not a Recall backup (it could not be read as JSON).' };
   }
   const env = envelope.safeParse(json);
-  if (!env.success) return { ok: false, error: 'This file is not a Recall backup, or it is damaged.' };
+  if (!env.success)
+    return { ok: false, error: 'This file is not a Recall backup, or it is damaged.' };
   const { schemaVersion } = env.data;
   if (schemaVersion > BACKUP_SCHEMA_VERSION) {
-    return { ok: false, error: 'This backup was made by a newer version of Recall. Please update the app first.' };
+    return {
+      ok: false,
+      error: 'This backup was made by a newer version of Recall. Please update the app first.',
+    };
   }
   let data: RawData;
   try {
@@ -269,7 +283,11 @@ export function parseBackup(text: string): ParseResult {
   snap.settings = snap.settings.length ? [normaliseSettings(snap.settings[0] as never)] : [];
   // Referential integrity: drop orphans with a warning rather than importing broken links.
   const docIds = new Set(snap.documents.map((d) => d.id));
-  const before = { chunks: snap.chunks.length, memory: snap.memory.length, attempts: snap.attempts.length };
+  const before = {
+    chunks: snap.chunks.length,
+    memory: snap.memory.length,
+    attempts: snap.attempts.length,
+  };
   snap.chunks = snap.chunks.filter((c) => docIds.has(c.documentId));
   const chunkIds = new Set(snap.chunks.map((c) => c.id));
   snap.memory = snap.memory.filter((m) => chunkIds.has(m.chunkId) && docIds.has(m.documentId));
@@ -277,7 +295,12 @@ export function parseBackup(text: string): ParseResult {
   const attemptIds = new Set(snap.attempts.map((a) => a.id));
   snap.reviewLog = snap.reviewLog.filter((l) => attemptIds.has(l.attemptId));
   const dropped =
-    before.chunks - snap.chunks.length + before.memory - snap.memory.length + before.attempts - snap.attempts.length;
+    before.chunks -
+    snap.chunks.length +
+    before.memory -
+    snap.memory.length +
+    before.attempts -
+    snap.attempts.length;
   if (dropped > 0) warnings.push(`${dropped} unlinked item(s) were skipped.`);
   // Only one session may be active.
   let activeSeen = false;
@@ -285,12 +308,19 @@ export function parseBackup(text: string): ParseResult {
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
     .map((s) => {
       if (s.status !== 'active') return s;
-      if (activeSeen) return { ...s, status: 'finished' as const, endedAt: s.updatedAt, draft: null };
+      if (activeSeen)
+        return { ...s, status: 'finished' as const, endedAt: s.updatedAt, draft: null };
       activeSeen = true;
       return s;
     });
   const counts = Object.fromEntries(COLLECTIONS.map((c) => [c, snap[c].length]));
-  return { ok: true, snapshot: snap, migratedFrom: schemaVersion === BACKUP_SCHEMA_VERSION ? null : schemaVersion, warnings, counts };
+  return {
+    ok: true,
+    snapshot: snap,
+    migratedFrom: schemaVersion === BACKUP_SCHEMA_VERSION ? null : schemaVersion,
+    warnings,
+    counts,
+  };
 }
 
 export function backupFileName(now: Date): string {

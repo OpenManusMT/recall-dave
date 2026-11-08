@@ -42,7 +42,9 @@ export function Library() {
     if (ds.some((d) => d.status === 'finished')) return 'Finished';
     return null;
   };
-  const mine = docs.filter((d) => d.provenance === 'pasted').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const mine = docs
+    .filter((d) => d.provenance === 'pasted')
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const q = mode === 'read' ? '?mode=read' : '';
 
   return (
@@ -51,10 +53,22 @@ export function Library() {
       <fieldset className="stack" style={{ border: 0, padding: 0, margin: 0 }}>
         <legend style={{ fontWeight: 600, marginBottom: 8 }}>How would you like to read?</legend>
         <div className="segmented" role="radiogroup" aria-label="Reading mode">
-          <button type="button" role="radio" aria-checked={mode === 'remember'} className="choice" onClick={() => setMode('remember')}>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={mode === 'remember'}
+            className="choice"
+            onClick={() => setMode('remember')}
+          >
             Help me remember this
           </button>
-          <button type="button" role="radio" aria-checked={mode === 'read'} className="choice" onClick={() => setMode('read')}>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={mode === 'read'}
+            className="choice"
+            onClick={() => setMode('read')}
+          >
             Help me read this
           </button>
         </div>
@@ -79,11 +93,18 @@ export function Library() {
                   <div className="grow">
                     <div className="title">{d.title}</div>
                     <div className="small muted">
-                      {d.status === 'finished' ? 'Finished' : `Part ${Math.min(d.nextChunkIndex + 1, d.chunkCount)} of ${d.chunkCount}`}
+                      {d.status === 'finished'
+                        ? 'Finished'
+                        : `Part ${Math.min(d.nextChunkIndex + 1, d.chunkCount)} of ${d.chunkCount}`}
                     </div>
                   </div>
                 </a>
-                <button type="button" className="btn ghost" aria-label={`Delete “${d.title}”`} onClick={() => setToDelete(d)}>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  aria-label={`Delete “${d.title}”`}
+                  onClick={() => setToDelete(d)}
+                >
                   <Icon name="trash" />
                 </button>
               </li>
@@ -95,7 +116,8 @@ export function Library() {
       <section className="stack" aria-labelledby="lib-h">
         <h2 id="lib-h">Library</h2>
         <p className="small muted" style={{ margin: 0 }}>
-          {LIBRARY_PASSAGES.length} short pieces written for Recall. They all work without an internet connection.
+          {LIBRARY_PASSAGES.length} short pieces written for Recall. They all work without an
+          internet connection.
         </p>
         <ul className="list">
           {LIBRARY_PASSAGES.map((p) => {
@@ -134,8 +156,8 @@ export function Library() {
           }}
         >
           <p>
-            “{toDelete.title}” and everything you wrote about it, including its reviews, will be removed from this device.
-            This can’t be undone.
+            “{toDelete.title}” and everything you wrote about it, including its reviews, will be
+            removed from this device. This can’t be undone.
           </p>
         </ConfirmDialog>
       ) : null}
@@ -150,7 +172,17 @@ export function AddReading() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const preview = text.trim() ? validatePastedReading(title, text) : null;
-  const parts = preview?.ok ? planPastedChunks(preview.text, { targetWords: currentChunkTarget(settings), minWords: settings.minChunkWords, maxWords: settings.maxChunkWords }, 'preview').length : 0;
+  const parts = preview?.ok
+    ? planPastedChunks(
+        preview.text,
+        {
+          targetWords: currentChunkTarget(settings),
+          minWords: settings.minChunkWords,
+          maxWords: settings.maxChunkWords,
+        },
+        'preview',
+      ).length
+    : 0;
 
   const save = async () => {
     setBusy(true);
@@ -170,12 +202,20 @@ export function AddReading() {
       <TopBar back="/library" backLabel="Library" />
       <h1>Paste your own reading</h1>
       <p className="muted">
-        Paste a letter, an article or anything you want to read. It stays on this device. Recall splits it into small parts
-        and picks key sentences by counting important words — it does not use AI or the internet.
+        Paste a letter, an article or anything you want to read. It stays on this device. Recall
+        splits it into small parts and picks key sentences by counting important words — it does not
+        use AI or the internet.
       </p>
       <div className="stack">
         <label htmlFor="add-title">Title (optional)</label>
-        <input id="add-title" type="text" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
+        <input
+          id="add-title"
+          type="text"
+          value={title}
+          maxLength={120}
+          onChange={(e) => setTitle(e.target.value)}
+          autoComplete="off"
+        />
       </div>
       <div className="stack">
         <label htmlFor="add-text">Text</label>
@@ -187,9 +227,10 @@ export function AddReading() {
           aria-describedby="add-help"
         />
         <p id="add-help" className="small muted">
-          {text.length.toLocaleString('en-GB')} of {MAX_PASTED_CHARS.toLocaleString('en-GB')} characters.
-          {parts > 0 ? ` About ${parts} ${parts === 1 ? 'part' : 'parts'}.` : ''} Links and code in the text are shown as plain
-          words and never opened.
+          {text.length.toLocaleString('en-GB')} of {MAX_PASTED_CHARS.toLocaleString('en-GB')}{' '}
+          characters.
+          {parts > 0 ? ` About ${parts} ${parts === 1 ? 'part' : 'parts'}.` : ''} Links and code in
+          the text are shown as plain words and never opened.
         </p>
       </div>
       {error || (preview && !preview.ok) ? (
@@ -197,7 +238,12 @@ export function AddReading() {
           {error ?? (preview && !preview.ok ? preview.error : '')}
         </p>
       ) : null}
-      <button type="button" className="btn primary block large" onClick={() => void save()} disabled={busy || !preview?.ok}>
+      <button
+        type="button"
+        className="btn primary block large"
+        onClick={() => void save()}
+        disabled={busy || !preview?.ok}
+      >
         Save and start reading
       </button>
     </div>

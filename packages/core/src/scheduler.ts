@@ -23,8 +23,8 @@ export const FALLBACK_INTERVALS_DAYS: readonly number[] = [1, 3, 7, 14, 30, 60, 
 
 /** FSRS-4.5 default weights (open-spaced-repetition reference implementation). */
 export const FSRS_DEFAULT_WEIGHTS: readonly number[] = [
-  0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793,
-  0.3246, 1.587, 0.2272, 2.8755,
+  0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072,
+  0.0793, 0.3246, 1.587, 0.2272, 2.8755,
 ];
 export const FSRS_DECAY = -0.5;
 export const FSRS_FACTOR = 19 / 81;
@@ -37,15 +37,27 @@ const GRADE_VALUE: Record<Grade, 1 | 2 | 3 | 4> = { AGAIN: 1, HARD: 2, GOOD: 3, 
  * fail or source reveal → AGAIN; substantial cues → HARD; correct with little
  * or no support → GOOD; strong independent recall after a meaningful interval → EASY.
  */
-export function mapGrade(outcome: IdeaOutcome, clueLevel: ClueLevel, elapsedDays: number | null): Grade {
+export function mapGrade(
+  outcome: IdeaOutcome,
+  clueLevel: ClueLevel,
+  elapsedDays: number | null,
+): Grade {
   if (outcome === 'incorrect' || clueLevel >= 4) return 'AGAIN';
   if (clueLevel >= 2 || outcome === 'partial') return 'HARD';
-  if (clueLevel === 0 && outcome === 'correct' && elapsedDays !== null && elapsedDays >= 3) return 'EASY';
+  if (clueLevel === 0 && outcome === 'correct' && elapsedDays !== null && elapsedDays >= 3)
+    return 'EASY';
   return 'GOOD';
 }
 
 /** Initial-scheduler recall strength by clue level (03 §5, configurable). */
-export const RECALL_STRENGTH: Record<ClueLevel, number> = { 0: 1, 1: 0.85, 2: 0.65, 3: 0.4, 4: 0.2, 5: 0 };
+export const RECALL_STRENGTH: Record<ClueLevel, number> = {
+  0: 1,
+  1: 0.85,
+  2: 0.65,
+  3: 0.4,
+  4: 0.2,
+  5: 0,
+};
 
 // ---------------------------------------------------------------- FSRS model
 
@@ -62,7 +74,7 @@ export function fsrsInterval(stability: number, retention = DESIRED_RETENTION): 
 }
 
 function initDifficulty(g: number, w: readonly number[]): number {
-  return clampD((w[4] as number) - ((g - 3) * (w[5] as number)));
+  return clampD((w[4] as number) - (g - 3) * (w[5] as number));
 }
 
 export function fsrsInit(grade: Grade, w: readonly number[] = FSRS_DEFAULT_WEIGHTS): FsrsState {
@@ -186,7 +198,12 @@ export function scheduleFirstExposure(params: {
 }
 
 /** Update a memory state after a later retrieval attempt (review). */
-export function scheduleReview(prev: MemoryState, outcome: IdeaOutcome, clueLevel: ClueLevel, now: Date): ScheduleUpdate {
+export function scheduleReview(
+  prev: MemoryState,
+  outcome: IdeaOutcome,
+  clueLevel: ClueLevel,
+  now: Date,
+): ScheduleUpdate {
   const elapsed = Math.max(0, daysBetween(prev.lastReviewAt, toISO(now)));
   const grade = mapGrade(outcome, clueLevel, elapsed);
   const sameDay = elapsed < 1;
@@ -220,11 +237,13 @@ export function isDue(state: MemoryState, now: Date): boolean {
 }
 
 /** For display only: the shadow model's view, clearly separate from the real due date. */
-export function shadowSummary(state: MemoryState, now: Date): { recommendedInDays: number; authoritativeInDays: number } {
+export function shadowSummary(
+  state: MemoryState,
+  now: Date,
+): { recommendedInDays: number; authoritativeInDays: number } {
   const n = toISO(now);
   return {
     recommendedInDays: Math.round(daysBetween(n, state.recommendedNextAt)),
     authoritativeInDays: Math.round(daysBetween(n, state.authoritativeNextAt)),
   };
 }
-

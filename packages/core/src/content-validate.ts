@@ -99,7 +99,10 @@ function validateIdea(idea: AuthoredIdea, sectionText: string, where: string): s
   }
   for (const q of idea.qualifiers) {
     const key = q.toLowerCase();
-    const inSpan = key === 'not' ? findCriticalQualifiers(spansJoined).includes('not') : hasWord(spansJoined, key);
+    const inSpan =
+      key === 'not'
+        ? findCriticalQualifiers(spansJoined).includes('not')
+        : hasWord(spansJoined, key);
     if (!inSpan) errs.push(`${where}: declared qualifier "${q}" not found in spans`);
     const equivalents = CRITICAL_QUALIFIERS[key] ?? [key];
     const preserved = equivalents.some((e) =>
@@ -107,7 +110,8 @@ function validateIdea(idea: AuthoredIdea, sectionText: string, where: string): s
     );
     if (!preserved) errs.push(`${where}: qualifier "${q}" not preserved in idea text`);
   }
-  if (!idea.topic.trim() || idea.topic.length > 60) errs.push(`${where}: topic missing or > 60 chars`);
+  if (!idea.topic.trim() || idea.topic.length > 60)
+    errs.push(`${where}: topic missing or > 60 chars`);
   if (!idea.semanticCue.trim() || idea.semanticCue.length > 140) {
     errs.push(`${where}: semanticCue missing or > 140 chars`);
   }
@@ -132,10 +136,13 @@ export function validatePassage(p: AuthoredPassage): string[] {
   const errs: string[] = [];
   const where = p.id || '(no id)';
   if (!/^(p\d{2}|probe-\d{2})-[a-z0-9-]+$/.test(p.id)) errs.push(`${where}: bad id format`);
-  if (p.kind === 'probe' && !p.id.startsWith('probe-')) errs.push(`${where}: probe id must start probe-`);
-  if (p.kind === 'library' && p.id.startsWith('probe-')) errs.push(`${where}: library id must not start probe-`);
+  if (p.kind === 'probe' && !p.id.startsWith('probe-'))
+    errs.push(`${where}: probe id must start probe-`);
+  if (p.kind === 'library' && p.id.startsWith('probe-'))
+    errs.push(`${where}: library id must not start probe-`);
   if (!p.title.trim()) errs.push(`${where}: missing title`);
-  if (!p.summary.trim() || p.summary.length > 120) errs.push(`${where}: summary missing or > 120 chars`);
+  if (!p.summary.trim() || p.summary.length > 120)
+    errs.push(`${where}: summary missing or > 120 chars`);
   if (!p.factNotes.trim()) errs.push(`${where}: missing factNotes`);
   const nSections = p.sections.length;
   if (p.kind === 'library' && (nSections < 2 || nSections > 4)) {
@@ -168,7 +175,11 @@ export function validatePassage(p: AuthoredPassage): string[] {
     if (new Set(q.options.map((o) => o.trim().toLowerCase())).size !== q.options.length) {
       errs.push(`${sw}/${q.id}: duplicate options`);
     }
-    if (!Number.isInteger(q.answerIndex) || q.answerIndex < 0 || q.answerIndex >= q.options.length) {
+    if (
+      !Number.isInteger(q.answerIndex) ||
+      q.answerIndex < 0 ||
+      q.answerIndex >= q.options.length
+    ) {
       errs.push(`${sw}/${q.id}: answerIndex out of range`);
     }
     if (!containsSpan(s.text, q.explanationSpan)) {

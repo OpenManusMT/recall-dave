@@ -60,10 +60,36 @@ const CONTRACTIONS: [RegExp, string][] = [
 ];
 
 const NUMBER_WORDS: Record<string, number> = {
-  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
-  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18,
-  nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90,
-  hundred: 100, thousand: 1000,
+  zero: 0,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  thirteen: 13,
+  fourteen: 14,
+  fifteen: 15,
+  sixteen: 16,
+  seventeen: 17,
+  eighteen: 18,
+  nineteen: 19,
+  twenty: 20,
+  thirty: 30,
+  forty: 40,
+  fifty: 50,
+  sixty: 60,
+  seventy: 70,
+  eighty: 80,
+  ninety: 90,
+  hundred: 100,
+  thousand: 1000,
 };
 
 /** General-purpose synonym groups (not tuned to any test case). First item is canonical. */
@@ -110,24 +136,90 @@ for (const g of SYNONYMS) for (const w of g) SYN.set(w, g[0] as string);
 
 /** Antonym pairs used to detect contradictions despite word overlap. */
 const ANTONYMS: [string, string][] = [
-  ['increase', 'reduce'], ['more', 'less'], ['more', 'fewer'], ['rise', 'fall'], ['warm', 'cool'],
-  ['warmer', 'cooler'], ['hot', 'cold'], ['heat', 'cool'], ['wet', 'dry'], ['consume', 'release'],
-  ['absorb', 'release'], ['absorb', 'emit'], ['take', 'give'], ['before', 'after'], ['above', 'below'],
-  ['up', 'down'], ['top', 'bottom'], ['early', 'late'], ['earlier', 'later'], ['fast', 'slow'],
-  ['easy', 'hard'], ['improve', 'damage'], ['improve', 'worsen'], ['help', 'damage'], ['safe', 'unsafe'],
-  ['safe', 'dangerous'], ['allow', 'forbid'], ['allow', 'ban'], ['same', 'different'], ['open', 'close'],
-  ['always', 'never'], ['start', 'stop'], ['light', 'heavy'], ['inside', 'outside'], ['north', 'south'],
-  ['east', 'west'], ['big', 'small'], ['long', 'short'], ['high', 'low'], ['strong', 'weak'],
-  ['add', 'remove'], ['gain', 'lose'], ['success', 'fail'], ['win', 'lose'], ['accept', 'reject'],
-  ['include', 'exclude'], ['true', 'false'], ['first', 'last'], ['stable', 'unstable'], ['cheap', 'expensive'],
-  ['entry', 'exit'], ['arrive', 'leave'], ['sink', 'float'], ['shrink', 'expand'], ['louder', 'quieter'],
-  ['stiff', 'soft'], ['upstream', 'downstream'], ['with', 'against'], ['winter', 'summer'], ['day', 'night'],
-  ['same', 'change'], ['remain', 'change'], ['spread', 'contain'], ['enough', 'insufficient'],
+  ['increase', 'reduce'],
+  ['more', 'less'],
+  ['more', 'fewer'],
+  ['rise', 'fall'],
+  ['warm', 'cool'],
+  ['warmer', 'cooler'],
+  ['hot', 'cold'],
+  ['heat', 'cool'],
+  ['wet', 'dry'],
+  ['consume', 'release'],
+  ['absorb', 'release'],
+  ['absorb', 'emit'],
+  ['take', 'give'],
+  ['before', 'after'],
+  ['above', 'below'],
+  ['up', 'down'],
+  ['top', 'bottom'],
+  ['early', 'late'],
+  ['earlier', 'later'],
+  ['fast', 'slow'],
+  ['easy', 'hard'],
+  ['improve', 'damage'],
+  ['improve', 'worsen'],
+  ['help', 'damage'],
+  ['safe', 'unsafe'],
+  ['safe', 'dangerous'],
+  ['allow', 'forbid'],
+  ['allow', 'ban'],
+  ['same', 'different'],
+  ['open', 'close'],
+  ['always', 'never'],
+  ['start', 'stop'],
+  ['light', 'heavy'],
+  ['inside', 'outside'],
+  ['north', 'south'],
+  ['east', 'west'],
+  ['big', 'small'],
+  ['long', 'short'],
+  ['high', 'low'],
+  ['strong', 'weak'],
+  ['add', 'remove'],
+  ['gain', 'lose'],
+  ['success', 'fail'],
+  ['win', 'lose'],
+  ['accept', 'reject'],
+  ['include', 'exclude'],
+  ['true', 'false'],
+  ['first', 'last'],
+  ['stable', 'unstable'],
+  ['cheap', 'expensive'],
+  ['entry', 'exit'],
+  ['arrive', 'leave'],
+  ['sink', 'float'],
+  ['shrink', 'expand'],
+  ['louder', 'quieter'],
+  ['stiff', 'soft'],
+  ['upstream', 'downstream'],
+  ['with', 'against'],
+  ['winter', 'summer'],
+  ['day', 'night'],
+  ['same', 'change'],
+  ['remain', 'change'],
+  ['spread', 'contain'],
+  ['enough', 'insufficient'],
 ];
 
-const NEGATORS = new Set(['not', 'no', 'never', 'without', 'nothing', 'none', 'neither', 'nor', 'avoid', 'avoided', 'exclude', 'excluded']);
-const VAGUE_MARKERS = /\b(something|somethin|stuff|things?|it was about|about some|the usual|to do with|some kind|whatever|i think it was)\b/;
-const DONT_KNOW = /\b(can not|do not|did not) (remember|recall)\b|\bno idea\b|\bforgot\b|\bforgotten\b|\bnot sure\b/;
+const NEGATORS = new Set([
+  'not',
+  'no',
+  'never',
+  'without',
+  'nothing',
+  'none',
+  'neither',
+  'nor',
+  'avoid',
+  'avoided',
+  'exclude',
+  'excluded',
+]);
+const VAGUE_MARKERS =
+  /\b(something|somethin|stuff|things?|it was about|about some|the usual|to do with|some kind|whatever|i think it was)\b/;
+const DONT_KNOW =
+  /\b(can not|do not|did not) (remember|recall)\b|\bno idea\b|\bforgot\b|\bforgotten\b|\bnot sure\b/;
 
 function stem(w: string): string {
   let s = w;
@@ -135,7 +227,8 @@ function stem(w: string): string {
   if (s.endsWith('ies') && s.length > 4) s = s.slice(0, -3) + 'y';
   else if (s.endsWith('sses')) s = s.slice(0, -2);
   else if (s.endsWith('es') && /(sh|ch|x|z|ss)es$/.test(s)) s = s.slice(0, -2);
-  else if (s.endsWith('s') && !s.endsWith('ss') && !s.endsWith('us') && !s.endsWith('is')) s = s.slice(0, -1);
+  else if (s.endsWith('s') && !s.endsWith('ss') && !s.endsWith('us') && !s.endsWith('is'))
+    s = s.slice(0, -1);
   if (s.endsWith('ing') && s.length > 5) s = s.slice(0, -3);
   else if (s.endsWith('ed') && s.length > 4) s = s.slice(0, -2);
   if (s.endsWith('ly') && s.length > 4) s = s.slice(0, -2);
@@ -192,7 +285,9 @@ function numberise(tokens: string[]): string[] {
 }
 
 function contentTokens(text: string): string[] {
-  return numberise(rawTokens(text)).filter((t) => /^\d+$/.test(t) || (!isStopword(t) && t.length > 2));
+  return numberise(rawTokens(text)).filter(
+    (t) => /^\d+$/.test(t) || (!isStopword(t) && t.length > 2),
+  );
 }
 
 function levenshtein(a: string, b: string): number {
@@ -204,7 +299,11 @@ function levenshtein(a: string, b: string): number {
     for (let j = 1; j <= n; j++) {
       const row = d[i] as number[];
       const prev = d[i - 1] as number[];
-      row[j] = Math.min((prev[j] as number) + 1, (row[j - 1] as number) + 1, (prev[j - 1] as number) + (a[i - 1] === b[j - 1] ? 0 : 1));
+      row[j] = Math.min(
+        (prev[j] as number) + 1,
+        (row[j - 1] as number) + 1,
+        (prev[j - 1] as number) + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
     }
   }
   return (d[m] as number[])[n] as number;
@@ -213,8 +312,20 @@ function levenshtein(a: string, b: string): number {
 /** Rough phonetic key: consonant skeleton with common English sound merges. */
 function phonetic(w: string): string {
   let s = w.toLowerCase();
-  s = s.replace(/ph/g, 'f').replace(/ck/g, 'k').replace(/gh/g, '').replace(/^kn/, 'n').replace(/^wr/, 'r').replace(/^wh/, 'w');
-  s = s.replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k').replace(/q/g, 'k').replace(/x/g, 'ks').replace(/z/g, 's').replace(/dg/g, 'j');
+  s = s
+    .replace(/ph/g, 'f')
+    .replace(/ck/g, 'k')
+    .replace(/gh/g, '')
+    .replace(/^kn/, 'n')
+    .replace(/^wr/, 'r')
+    .replace(/^wh/, 'w');
+  s = s
+    .replace(/c(?=[eiy])/g, 's')
+    .replace(/c/g, 'k')
+    .replace(/q/g, 'k')
+    .replace(/x/g, 'ks')
+    .replace(/z/g, 's')
+    .replace(/dg/g, 'j');
   s = s.replace(/tion/g, 'shn').replace(/sion/g, 'shn');
   const first = s[0] ?? '';
   const rest = s.slice(1).replace(/[aeiouy]/g, '');
@@ -241,7 +352,12 @@ function soundsAlike(a: string, b: string): boolean {
   // A dropped or added first sound ("table" for "stable").
   if (a.length >= 4 && (a === b.slice(1) || b === a.slice(1))) return true;
   const d = levenshtein(a, b);
-  return a[0] === b[0] && d <= 2 && d / Math.max(a.length, b.length) <= 0.34 && Math.abs(a.length - b.length) <= 2;
+  return (
+    a[0] === b[0] &&
+    d <= 2 &&
+    d / Math.max(a.length, b.length) <= 0.34 &&
+    Math.abs(a.length - b.length) <= 2
+  );
 }
 
 interface AsrFinding {
@@ -251,7 +367,9 @@ interface AsrFinding {
 
 /** Words in the transcript that sound like a source word that the transcript does not contain. */
 export function findAsrSuspects(source: string, ideas: string[], transcript: string): AsrFinding[] {
-  const srcWords = new Set(rawTokens([source, ...ideas].join(' ')).filter((w) => w.length >= 3 && !isStopword(w)));
+  const srcWords = new Set(
+    rawTokens([source, ...ideas].join(' ')).filter((w) => w.length >= 3 && !isStopword(w)),
+  );
   const srcCanon = new Set([...srcWords].map(canon));
   const tr = rawTokens(transcript);
   const trCanon = new Set(tr.map(canon));
@@ -279,7 +397,8 @@ export function findAsrSuspects(source: string, ideas: string[], transcript: str
 }
 
 function negatedNear(tokens: string[], idx: number, window = 2): boolean {
-  for (let j = Math.max(0, idx - window); j < idx; j++) if (NEGATORS.has(tokens[j] as string)) return true;
+  for (let j = Math.max(0, idx - window); j < idx; j++)
+    if (NEGATORS.has(tokens[j] as string)) return true;
   return false;
 }
 
@@ -297,13 +416,16 @@ function contradictionSignals(sourceAndIdeas: string, transcript: string): Signa
   for (const [a, b] of ANTONYMS) {
     const ca = canon(a);
     const cb = canon(b);
-    if (tCanon.has(ca) && !tCanon.has(cb) && sCanon.has(cb) && !sCanon.has(ca)) sig.push({ kind: 'antonym', detail: `${a} vs ${b}` });
-    if (tCanon.has(cb) && !tCanon.has(ca) && sCanon.has(ca) && !sCanon.has(cb)) sig.push({ kind: 'antonym', detail: `${b} vs ${a}` });
+    if (tCanon.has(ca) && !tCanon.has(cb) && sCanon.has(cb) && !sCanon.has(ca))
+      sig.push({ kind: 'antonym', detail: `${a} vs ${b}` });
+    if (tCanon.has(cb) && !tCanon.has(ca) && sCanon.has(ca) && !sCanon.has(cb))
+      sig.push({ kind: 'antonym', detail: `${b} vs ${a}` });
   }
   // Negation flips on shared content words.
   const sNeg = new Map<string, boolean>();
   sTok.forEach((w, i) => {
-    if (!isStopword(w) && w.length > 3) sNeg.set(canon(w), (sNeg.get(canon(w)) ?? false) || negatedNear(sTok, i));
+    if (!isStopword(w) && w.length > 3)
+      sNeg.set(canon(w), (sNeg.get(canon(w)) ?? false) || negatedNear(sTok, i));
   });
   tTok.forEach((w, i) => {
     if (isStopword(w) || w.length <= 3) return;
@@ -316,7 +438,8 @@ function contradictionSignals(sourceAndIdeas: string, transcript: string): Signa
   // Numbers stated that differ from every number in the source.
   const sNums = new Set(sTok.filter((t) => /^\d+$/.test(t)));
   const tNums = tTok.filter((t) => /^\d+$/.test(t));
-  if (sNums.size > 0) for (const n of tNums) if (!sNums.has(n)) sig.push({ kind: 'number', detail: n });
+  if (sNums.size > 0)
+    for (const n of tNums) if (!sNums.has(n)) sig.push({ kind: 'number', detail: n });
   return sig;
 }
 
@@ -334,11 +457,23 @@ export function scoreRecallLocally(input: ScorerInput): ScorerOutput {
 
   // Empty / "I don't remember".
   if (tContent.length === 0 || DONT_KNOW.test(normalise(transcript))) {
-    return { ...base, label: 'incorrect', score: 0, clueLevel: 3, action: 'give_clue', ideaScores: ideas.map((i) => ({ ideaId: i.id, coverage: 0, contradiction: false })), evidence: ['No recalled content to compare with the source.'] };
+    return {
+      ...base,
+      label: 'incorrect',
+      score: 0,
+      clueLevel: 3,
+      action: 'give_clue',
+      ideaScores: ideas.map((i) => ({ ideaId: i.id, coverage: 0, contradiction: false })),
+      evidence: ['No recalled content to compare with the source.'],
+    };
   }
 
   // 1. ASR uncertainty first: never score memory from a possibly corrupted transcript.
-  const asr = findAsrSuspects(source, ideas.map((i) => i.text), transcript);
+  const asr = findAsrSuspects(
+    source,
+    ideas.map((i) => i.text),
+    transcript,
+  );
   if (asr.length > 0) {
     return {
       ...base,
@@ -347,7 +482,9 @@ export function scoreRecallLocally(input: ScorerInput): ScorerOutput {
       clueLevel: null,
       action: 'confirm_transcript',
       ideaScores: [],
-      evidence: asr.map((a) => `Heard “${a.heard}” — did you mean “${a.likely}”? Please confirm before checking.`),
+      evidence: asr.map(
+        (a) => `Heard “${a.heard}” — did you mean “${a.likely}”? Please confirm before checking.`,
+      ),
     };
   }
 
@@ -357,9 +494,17 @@ export function scoreRecallLocally(input: ScorerInput): ScorerOutput {
   const ideaScores: IdeaScore[] = ideas.map((idea) => {
     const words = [...new Set(contentTokens(idea.text).map(canon))];
     const hit = words.filter((w) => tSet.has(w)).length;
-    return { ideaId: idea.id, coverage: words.length ? hit / words.length : 0, contradiction: false };
+    return {
+      ideaId: idea.id,
+      coverage: words.length ? hit / words.length : 0,
+      contradiction: false,
+    };
   });
-  const supported = tContent.filter((w) => srcSet.has(canon(w)) || ideas.some((i) => contentTokens(i.text).map(canon).includes(canon(w)))).length;
+  const supported = tContent.filter(
+    (w) =>
+      srcSet.has(canon(w)) ||
+      ideas.some((i) => contentTokens(i.text).map(canon).includes(canon(w))),
+  ).length;
   const sourceOverlap = supported / Math.max(1, tContent.length);
   const meanCov = ideaScores.reduce((a, b) => a + b.coverage, 0) / Math.max(1, ideaScores.length);
 
@@ -374,21 +519,57 @@ export function scoreRecallLocally(input: ScorerInput): ScorerOutput {
       clueLevel: 2,
       action: 'correct_misconception_then_cue',
       ideaScores,
-      evidence: signals.slice(0, 3).map((s) => `Possible contradiction of the source (${s.kind}: ${s.detail}).`),
+      evidence: signals
+        .slice(0, 3)
+        .map((s) => `Possible contradiction of the source (${s.kind}: ${s.detail}).`),
     };
   }
 
   const covered = ideaScores.filter((s) => s.coverage >= 0.4).length;
-  const evidence = ideaScores.map((s, k) => `Key idea ${k + 1}: ${Math.round(s.coverage * 100)}% of its content words recalled.`);
+  const evidence = ideaScores.map(
+    (s, k) => `Key idea ${k + 1}: ${Math.round(s.coverage * 100)}% of its content words recalled.`,
+  );
   if (covered === ideas.length && ideas.length > 0) {
-    return { ...base, label: 'correct', score: round3(Math.min(1, 0.86 + 0.14 * meanCov)), clueLevel: 0, action: 'accept', ideaScores, evidence };
+    return {
+      ...base,
+      label: 'correct',
+      score: round3(Math.min(1, 0.86 + 0.14 * meanCov)),
+      clueLevel: 0,
+      action: 'accept',
+      ideaScores,
+      evidence,
+    };
   }
   if (covered > 0 || meanCov >= 0.3) {
-    return { ...base, label: 'partial', score: round3(0.5 + 0.2 * Math.min(1, meanCov)), clueLevel: 1, action: 'prompt_more', ideaScores, evidence };
+    return {
+      ...base,
+      label: 'partial',
+      score: round3(0.5 + 0.2 * Math.min(1, meanCov)),
+      clueLevel: 1,
+      action: 'prompt_more',
+      ideaScores,
+      evidence,
+    };
   }
   const vague = VAGUE_MARKERS.test(normalise(transcript)) || tContent.length <= 3;
   if (vague && sourceOverlap > 0) {
-    return { ...base, label: 'vague', score: 0.3, clueLevel: 1, action: 'prompt_specifics', ideaScores, evidence: ['The answer names the topic but not the specific points.'] };
+    return {
+      ...base,
+      label: 'vague',
+      score: 0.3,
+      clueLevel: 1,
+      action: 'prompt_specifics',
+      ideaScores,
+      evidence: ['The answer names the topic but not the specific points.'],
+    };
   }
-  return { ...base, label: 'incorrect', score: round3(Math.min(0.2, meanCov * 0.5)), clueLevel: 3, action: 'give_clue', ideaScores, evidence };
+  return {
+    ...base,
+    label: 'incorrect',
+    score: round3(Math.min(0.2, meanCov * 0.5)),
+    clueLevel: 3,
+    action: 'give_clue',
+    ideaScores,
+    evidence,
+  };
 }

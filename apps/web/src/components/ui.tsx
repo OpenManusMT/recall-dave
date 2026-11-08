@@ -17,7 +17,17 @@ export function useFocusOnChange<T extends HTMLElement>(key: unknown) {
   return ref;
 }
 
-export function TopBar({ back, backLabel = 'Back', title, right }: { back?: string | (() => void); backLabel?: string; title?: string; right?: ReactNode }) {
+export function TopBar({
+  back,
+  backLabel = 'Back',
+  title,
+  right,
+}: {
+  back?: string | (() => void);
+  backLabel?: string;
+  title?: string;
+  right?: ReactNode;
+}) {
   return (
     <div className="topbar">
       {back ? (
@@ -45,7 +55,14 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
       <div className="small muted" aria-hidden="true">
         {label}
       </div>
-      <div className="progress" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+      <div
+        className="progress"
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+      >
         <span style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -85,14 +102,29 @@ export function ConfirmDialog({
     };
   }, [onCancel]);
   return (
-    <div className="dialog-backdrop" role="presentation" onClick={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog stack" role="dialog" aria-modal="true" aria-labelledby="dialog-title" ref={ref}>
+    <div
+      className="dialog-backdrop"
+      role="presentation"
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <div
+        className="dialog stack"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+        ref={ref}
+      >
         <h2 id="dialog-title" tabIndex={-1}>
           {title}
         </h2>
         <div>{children}</div>
         <div className="stack">
-          <button type="button" className={`btn block ${danger ? 'danger' : 'primary'}`} onClick={onConfirm} disabled={busy}>
+          <button
+            type="button"
+            className={`btn block ${danger ? 'danger' : 'primary'}`}
+            onClick={onConfirm}
+            disabled={busy}
+          >
             {confirmLabel}
           </button>
           <button type="button" className="btn block secondary" onClick={onCancel} disabled={busy}>
