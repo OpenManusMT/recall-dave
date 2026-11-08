@@ -259,6 +259,21 @@ p {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
 }
+@media (max-width: 520px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The main action of a reading step stays on screen while the text scrolls. */
+.actionbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 0 -4px;
+  padding: 10px 4px calc(10px + var(--safe-bottom));
+  background: linear-gradient(to bottom, transparent, var(--bg) 22%);
+}
 
 /* ---------------------------------------------------------------- buttons */
 

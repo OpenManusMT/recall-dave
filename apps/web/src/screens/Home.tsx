@@ -147,27 +147,29 @@ export function Home() {
 
       <section className="stack" aria-labelledby="glance-h">
         <h2 id="glance-h">At a glance</h2>
-        <div className="grid-2">
-          {[practised.nextDay, practised.week, practised.clueDependence].map((m) => (
-            <a
-              key={m.key}
-              className="card metric"
-              href={href('/insights')}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <span className="small muted">{m.label}</span>
-              <span className={`value ${m.value === null ? 'unmeasured' : ''}`}>{m.display}</span>
-            </a>
-          ))}
-          <a
-            className="card metric"
-            href={href('/insights')}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            <span className="small muted">Comfortable part size</span>
-            <span className="value">{data.insights.comfortableChunkWords} words</span>
-          </a>
-        </div>
+        {data.insights.totals.partsRead + data.insights.totals.reviewsDone === 0 ? (
+          <p className="muted" style={{ margin: 0 }}>
+            Your progress will appear here after your first reading. Parts are about{' '}
+            {data.insights.comfortableChunkWords} words to start with.
+          </p>
+        ) : (
+          <ul className="list" aria-label="Progress at a glance">
+            {[practised.nextDay, practised.week, practised.clueDependence].map((m) => (
+              <li key={m.key}>
+                <a className="list-item" href={href('/insights')}>
+                  <span className="grow">{m.label}</span>
+                  <strong className={m.value === null ? 'muted' : ''}>{m.display}</strong>
+                </a>
+              </li>
+            ))}
+            <li>
+              <a className="list-item" href={href('/insights')}>
+                <span className="grow">Comfortable part size</span>
+                <strong>{data.insights.comfortableChunkWords} words</strong>
+              </a>
+            </li>
+          </ul>
+        )}
       </section>
 
       {data.probe ? (

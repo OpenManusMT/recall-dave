@@ -20,6 +20,7 @@ const win = process.platform === 'win32';
 const npx = win ? 'npx.cmd' : 'npx';
 const npm = win ? 'npm.cmd' : 'npm';
 const results = [];
+const ANSI = new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g');
 
 function sh(cmd, argv, opts = {}) {
   const t0 = Date.now();
@@ -33,11 +34,7 @@ function sh(cmd, argv, opts = {}) {
   });
   return {
     code: r.error ? 127 : (r.status ?? 1),
-    // eslint-disable-next-line no-control-regex
-    out: `${r.stdout ?? ''}${r.stderr ?? ''}${r.error ? String(r.error) : ''}`.replace(
-      /\x1b\[[0-9;]*m/g,
-      '',
-    ),
+    out: `${r.stdout ?? ''}${r.stderr ?? ''}${r.error ? String(r.error) : ''}`.replace(ANSI, ''),
     ms: Date.now() - t0,
   };
 }

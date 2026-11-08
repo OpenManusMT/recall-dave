@@ -46,7 +46,7 @@ export interface ChunkFlowProps {
 
 const LEVEL_LABEL: Record<ClueLevel, string> = {
   0: '',
-  1: 'Starting point',
+  1: 'About this point',
   2: 'Hint',
   3: 'Stronger hint',
   4: 'From the text',
@@ -273,13 +273,15 @@ export function ChunkFlow(props: ChunkFlowProps) {
             </button>
           </>
         ) : (
-          <button
-            type="button"
-            className="btn primary block large"
-            onClick={() => setPhase('recall')}
-          >
-            <Icon name="eyeOff" /> I’ve read it — hide the text
-          </button>
+          <div className="actionbar">
+            <button
+              type="button"
+              className="btn primary block large"
+              onClick={() => setPhase('recall')}
+            >
+              <Icon name="eyeOff" /> I’ve read it — hide the text
+            </button>
+          </div>
         )}
         {kind === 'probe' ? (
           <p className="small muted">
@@ -328,27 +330,26 @@ export function ChunkFlow(props: ChunkFlowProps) {
               : 'Tip: on iPhone you can tap the microphone on the keyboard to speak instead of typing.'}
           </p>
         </div>
-        <div className="stack">
+        <div className="actionbar">
           <button type="button" className="btn primary block large" onClick={afterRecall}>
             <Icon name="check" />{' '}
             {recallText.trim() ? 'Check my answer' : 'I can’t remember — help me'}
           </button>
-          <button
-            type="button"
-            className="btn secondary block"
-            aria-expanded={peeking}
-            onClick={() => {
-              if (!peeking) {
-                setPeeks((n) => n + 1);
-                strategy('show_text');
-              }
-              setPeeking((v) => !v);
-            }}
-          >
-            <Icon name={peeking ? 'eyeOff' : 'eye'} />{' '}
-            {peeking ? 'Hide the text again' : 'Show text'}
-          </button>
         </div>
+        <button
+          type="button"
+          className="btn secondary block"
+          aria-expanded={peeking}
+          onClick={() => {
+            if (!peeking) {
+              setPeeks((n) => n + 1);
+              strategy('show_text');
+            }
+            setPeeking((v) => !v);
+          }}
+        >
+          <Icon name={peeking ? 'eyeOff' : 'eye'} /> {peeking ? 'Hide the text again' : 'Show text'}
+        </button>
         {peeking ? (
           <div className="card" aria-label="The text">
             <ReadingText text={chunk.text} />
@@ -398,7 +399,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
         <h1 id="check-heading" ref={headingRef} tabIndex={-1}>
           Check point {k + 1} of {ideas.length}
         </h1>
-        <details className="card">
+        <details className="card" open>
           <summary>What you wrote</summary>
           <p style={{ whiteSpace: 'pre-wrap' }}>
             {recallText.trim() || '(nothing yet — that’s fine)'}
@@ -607,7 +608,7 @@ function IdeaLadder({
             className="btn ghost"
             onClick={() => onAction({ type: 'remember_now' })}
           >
-            I remember it now — show me
+            I didn’t write it, but I remember it now
           </button>
         </div>
       </div>
