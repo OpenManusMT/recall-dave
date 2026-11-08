@@ -1,0 +1,11 @@
+{
+  "app": "Recall",
+  "version": "1.0.0",
+  "builtFromCommit": "5f7f70b5664be76dd10b807bea6d878ee21eb3d9",
+  "note": "builtFromCommit is the commit checked out when the ZIP was made; rebuild from it to reproduce.",
+  "zip": "recall-pwa-1.0.0.zip",
+  "zipSha256": "35999d52f8891967b2a4cfb79a57ec6f9022b3f85765ad6d823d11866848eb3b",
+  "files": 13,
+  "bytes": 587781,
+  "deploy": "Upload the contents of recall-pwa/ to any static HTTPS host. See docs/DEPLOYMENT.md."
+}

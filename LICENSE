@@ -1,0 +1,35 @@
+MIT License
+
+Copyright (c) 2026 The Recall project contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+Scope and why MIT: the MIT licence covers the source code in this repository
+(packages/core, apps/web, apps/mobile, services/api, scripts, tests, e2e). It is
+short, permissive and widely understood, so the project can be continued,
+hosted or handed to another developer without legal friction.
+
+Not covered by this licence:
+- packages/content (the reading passages and questions): original works licensed
+  separately under CC BY 4.0 — see packages/content/LICENSE.
+- spec-source/ (the original specification pack and hand-off documents): included
+  unchanged for traceability; rights remain with their authors.
+- Third-party dependencies: under their own licences (see package-lock.json and
+  services/api/requirements.txt).

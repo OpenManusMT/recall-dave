@@ -37,6 +37,6 @@ credentials.json
 google-services.json
 
 # release artefacts are attached/regenerated, not committed (checksums are)
-release/*.zip
+release/recall-source-*.zip
 
 .DS_Store
