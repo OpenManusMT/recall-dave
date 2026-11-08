@@ -28,14 +28,14 @@ Living log for any agent or person continuing this project. Status values: `PASS
 | 6 | Independent holdout + adversarial scorer cases (frozen before scorer work) | PASS | `tests/a001/holdout/FROZEN.sha256` (commit `ce1347e`, before the scorer) |
 | 7 | Candidate local scorer, A001 5×100 + holdout + adversarial | Executed; **gate FAIL** (recorded) | `tests/a001/results/SUMMARY.md`, history v1/v2 |
 | 8 | `services/api` optional provider service + tests | PASS (144 tests) | `npm run api:test` |
-| 9 | Expo native app + EAS profiles + Expo checks | see `docs/RELEASE-REPORT.md` | `apps/mobile/VERIFICATION.txt` |
+| 9 | Expo native app + EAS profiles + Expo checks | PASS for tsc / Jest 18 / config / iOS export; expo-doctor 18/20 (2 blocked by network) | `apps/mobile/VERIFICATION.txt` |
 | 10 | Playwright e2e (Chromium 375×667 + 390×844), PWA offline smoke, axe | PASS | `npx playwright test` |
 | 10b | Playwright WebKit | NOT_RUN (no WebKit build in the VM; installing browsers is not permitted there) | `docs/evidence/verify-latest.md` |
 | 11 | `npm run verify` single entry point | PASS | `scripts/verify.mjs` |
 | 12 | Improvement pass 1 (usability) | PASS | `docs/IMPROVEMENT-LOG.md` (commit `9c026a7`) |
 | 13 | Improvement pass 2 (reliability/safety) | PASS | `docs/IMPROVEMENT-LOG.md` (commit `dbf106b`) |
 | 14 | Improvement pass 3 (performance/accessibility) | PASS | `docs/IMPROVEMENT-LOG.md` (commit `5f7f70b`) |
-| 15 | Final audit, docs, release ZIP + checksums | see `docs/RELEASE-REPORT.md` | `release/` |
+| 15 | Final independent audit (F1–F15 fixed with tests), docs, release ZIP + checksums | PASS | `docs/IMPROVEMENT-LOG.md`, `release/`, `docs/RELEASE-REPORT.md` |
 | 16 | Hosted HTTPS deployment | BLOCKED_EXTERNAL — publishing a public site needs the owner’s approval; one-click manual workflow provided | `docs/DEPLOYMENT.md` |
 | 17 | Signed iOS build / TestFlight | BLOCKED_EXTERNAL (Apple Developer membership + Expo account) | `apps/mobile/README.md` |
 | 18 | Physical iPhone test | BLOCKED_EXTERNAL (PHYSICAL_IPHONE_NOT_TESTED) | `docs/IPHONE-INSTALL-AND-TEST.md` |
