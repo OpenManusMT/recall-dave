@@ -107,6 +107,7 @@ export function SettingsScreen() {
         backupFileName(now()),
         JSON.stringify(createBackup(snap, now(), __APP_VERSION__), null, 1),
       );
+      await updateSettings({ lastBackupAt: now().toISOString() });
       setMessage(
         how === 'shared'
           ? 'Backup ready. Choose “Save to Files” to keep it.'
@@ -316,6 +317,17 @@ export function SettingsScreen() {
             {errorMsg}
           </p>
         ) : null}
+        <p className="small muted" style={{ margin: 0 }}>
+          Last backup:{' '}
+          {settings.lastBackupAt
+            ? new Date(settings.lastBackupAt).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })
+            : 'never'}
+          . Keep backup files somewhere safe, such as Files or iCloud Drive.
+        </p>
         <button type="button" className="btn secondary block" onClick={() => void exportBackup()}>
           <Icon name="download" /> Export backup
         </button>

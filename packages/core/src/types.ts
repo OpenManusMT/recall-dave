@@ -255,6 +255,8 @@ export interface Settings {
   /** Experimental local scorer hints (never affects schedule). Off by default. */
   experimentalScorer: boolean;
   lastAdaptationSessionId: string | null;
+  /** When the learner last exported a backup (for a gentle reminder; browsers can clear site data). */
+  lastBackupAt: ISODate | null;
 }
 
 export type CollectionName =

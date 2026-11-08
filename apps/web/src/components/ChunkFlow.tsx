@@ -449,6 +449,9 @@ export function ChunkFlow(props: ChunkFlowProps) {
             <button type="button" className="btn primary block" onClick={() => void save(ladders)}>
               Try saving again
             </button>
+            <a className="btn secondary block" href="#/">
+              Go to Home
+            </a>
           </div>
         ) : (
           <p role="status">Saving…</p>

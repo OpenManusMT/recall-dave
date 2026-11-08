@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  backupReminderDue,
   computeInsights,
   describeDue,
   dueReviewGroups,
@@ -17,6 +18,7 @@ import { ALL_PASSAGES, LIBRARY_PASSAGES } from '@recall/content';
 import { useApp } from '../lib/app-context';
 import { href, navigate } from '../lib/router';
 import { Icon } from '../components/Icon';
+import { getFlag, isIos, isStandalone, setFlag } from '../lib/platform';
 
 interface HomeData {
   due: number;
@@ -27,11 +29,15 @@ interface HomeData {
   suggestion: AuthoredPassage | null;
   probe: AuthoredPassage | null;
   insights: Insights;
+  answers: number;
 }
 
 export function Home() {
   const { store, settings, now, dataVersion, persistence } = useApp();
   const [data, setData] = useState<HomeData | null>(null);
+  const [showInstall, setShowInstall] = useState(
+    () => isIos() && !isStandalone() && !getFlag('installHintDismissed'),
+  );
 
   useEffect(() => {
     let alive = true;
@@ -50,6 +56,7 @@ export function Home() {
         activeDoc,
         suggestion: suggestNextPassage(LIBRARY_PASSAGES, snap.documents),
         probe: suggestNextProbe(ALL_PASSAGES, snap.documents),
+        answers: snap.attempts.length,
         insights: computeInsights(
           { attempts: snap.attempts, reviewLog: snap.reviewLog, settings },
           now(),
@@ -96,6 +103,40 @@ export function Home() {
           This browser is not letting Recall save anything (for example in Private Browsing). You
           can still read, but progress will be lost when you close the page.
         </p>
+      ) : null}
+
+      {showInstall ? (
+        <div className="card soft stack" role="note" aria-labelledby="install-h">
+          <h2 id="install-h">Add Recall to your Home Screen</h2>
+          <p style={{ margin: 0 }}>
+            In Safari, tap the Share button (a square with an arrow), then “Add to Home Screen”.
+            Recall then opens like an app, works without internet, and keeps your progress more
+            reliably.
+          </p>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => {
+              setFlag('installHintDismissed');
+              setShowInstall(false);
+            }}
+          >
+            Got it
+          </button>
+        </div>
+      ) : null}
+
+      {backupReminderDue(settings, data.answers, now()) ? (
+        <div className="card note stack" role="note" aria-labelledby="backup-h">
+          <h2 id="backup-h">Keep a copy of your progress</h2>
+          <p style={{ margin: 0 }}>
+            Your progress is only on this device. A backup file lets you restore it if the browser
+            clears its data or you change phone.
+          </p>
+          <a className="btn secondary block" href={href('/settings')}>
+            <Icon name="download" /> Make a backup in Settings
+          </a>
+        </div>
       ) : null}
 
       {data.active?.draft && data.activeDoc ? (

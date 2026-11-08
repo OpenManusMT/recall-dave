@@ -1,4 +1,4 @@
-import { openDB, type IDBPDatabase } from 'idb';
+import { openDB, type IDBPDatabase, type IDBPTransaction } from 'idb';
 import {
   COLLECTIONS,
   type CollectionName,
@@ -11,6 +11,8 @@ import {
 export const IDB_NAME = 'recall';
 /** IndexedDB schema version. v1: one object store per collection, keyed by `id`. */
 export const IDB_VERSION = 1;
+
+const ignore = () => undefined;
 
 export class StorageWriteError extends Error {
   constructor(
@@ -67,36 +69,53 @@ export class IdbStore implements RecallStore {
   async batch(ops: StoreOp[]): Promise<void> {
     if (ops.length === 0) return;
     const names = [...new Set(ops.map((o) => o.collection))];
-    try {
-      const tx = this.db.transaction(names, 'readwrite');
+    await this.atomically(names, (tx) => {
       for (const op of ops) {
         const s = tx.objectStore(op.collection);
-        if (op.type === 'put') void s.put(op.value);
-        else void s.delete(op.id);
+        // Per-request promises reject when the transaction aborts; the transaction result is what counts.
+        if (op.type === 'put') s.put(op.value).catch(ignore);
+        else s.delete(op.id).catch(ignore);
       }
+    });
+  }
+
+  /**
+   * Run writes in one readwrite transaction. Any error — including a synchronous one part-way
+   * through — aborts the whole transaction so nothing is half-saved.
+   */
+  private async atomically(
+    names: CollectionName[],
+    work: (tx: IDBPTransaction<unknown, CollectionName[], 'readwrite'>) => void,
+  ): Promise<void> {
+    let tx: IDBPTransaction<unknown, CollectionName[], 'readwrite'> | undefined;
+    try {
+      tx = this.db.transaction(names, 'readwrite');
+      tx.done.catch(() => undefined);
+      work(tx);
       await tx.done;
     } catch (e) {
+      try {
+        tx?.abort();
+      } catch {
+        /* already finished */
+      }
       throw classify(e);
     }
   }
 
   async replaceAll(snapshot: Snapshot): Promise<void> {
-    try {
-      const tx = this.db.transaction([...COLLECTIONS], 'readwrite');
+    await this.atomically([...COLLECTIONS], (tx) => {
       for (const c of COLLECTIONS) {
         const s = tx.objectStore(c);
-        void s.clear();
-        for (const r of snapshot[c] ?? []) void s.put(r);
+        s.clear().catch(ignore);
+        for (const r of snapshot[c] ?? []) s.put(r).catch(ignore);
       }
-      await tx.done;
-    } catch (e) {
-      throw classify(e);
-    }
+    });
   }
 
   async clearAll(): Promise<void> {
     const tx = this.db.transaction([...COLLECTIONS], 'readwrite');
-    for (const c of COLLECTIONS) void tx.objectStore(c).clear();
+    for (const c of COLLECTIONS) tx.objectStore(c).clear().catch(ignore);
     await tx.done;
   }
 

@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS: Settings = {
   schedulerMode: 'shadow',
   experimentalScorer: false,
   lastAdaptationSessionId: null,
+  lastBackupAt: null,
 };
 
 export const FONT_SCALES: readonly { value: number; label: string }[] = [
@@ -64,7 +65,21 @@ export function normaliseSettings(raw: Partial<Settings> | undefined | null): Se
     experimentalScorer: Boolean(s.experimentalScorer),
     lastAdaptationSessionId:
       typeof s.lastAdaptationSessionId === 'string' ? s.lastAdaptationSessionId : null,
+    lastBackupAt:
+      typeof s.lastBackupAt === 'string' && !Number.isNaN(Date.parse(s.lastBackupAt))
+        ? s.lastBackupAt
+        : null,
   };
+}
+
+/**
+ * Whether to show a gentle "keep a copy" reminder: browsers (including Safari) can clear
+ * website data, so a backup protects progress. Never nags before there is something to lose.
+ */
+export function backupReminderDue(s: Settings, savedAnswers: number, now: Date): boolean {
+  if (savedAnswers < 5) return false;
+  if (!s.lastBackupAt) return true;
+  return now.getTime() - Date.parse(s.lastBackupAt) > 30 * 86_400_000;
 }
 
 export function currentChunkTarget(s: Settings): number {

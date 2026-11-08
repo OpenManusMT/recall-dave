@@ -325,6 +325,30 @@ export function heuristicIdeas(
   });
 }
 
+/** Split an over-long run of text into pieces of at most `maxWords`, preferring clause boundaries. */
+export function breakLongSentence(sentence: string, maxWords: number): string[] {
+  if (countWords(sentence) <= maxWords) return [sentence];
+  const limit = Math.max(20, Math.floor(maxWords * 0.9));
+  const words = sentence.split(/\s+/).filter(Boolean);
+  const out: string[] = [];
+  let start = 0;
+  while (start < words.length) {
+    let end = Math.min(words.length, start + limit);
+    if (end < words.length) {
+      // Prefer to end just after a comma, semicolon, colon or dash in the second half of the window.
+      for (let k = end; k > start + Math.floor(limit / 2); k--) {
+        if (/[,;:\u2013\u2014-]$/.test(words[k - 1] ?? '')) {
+          end = k;
+          break;
+        }
+      }
+    }
+    out.push(words.slice(start, end).join(' '));
+    start = end;
+  }
+  return out;
+}
+
 /** Plan chunks for pasted text: paragraph boundaries first, then sentence groups. */
 export function planPastedChunks(
   text: string,
@@ -334,7 +358,9 @@ export function planPastedChunks(
   const o = clampOptions(options);
   const units: Unit[] = [];
   for (const para of splitParagraphs(text)) {
-    const sentences = splitSentences(para);
+    // A "sentence" longer than the maximum (e.g. text without full stops) is broken at
+    // commas/semicolons, or failing that between words, so no part is ever huge.
+    const sentences = splitSentences(para).flatMap((s) => breakLongSentence(s, o.maxWords));
     const words = countWords(para);
     if (words <= o.targetWords * 1.35) {
       units.push({ sentences, sectionIds: [], ideas: [], questions: [] });

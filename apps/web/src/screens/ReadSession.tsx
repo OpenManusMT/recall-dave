@@ -58,6 +58,12 @@ export function ReadSession({
         } else if (documentId) {
           document = await store.get('documents', documentId);
           if (document) chunks = await getDocumentChunks(store, document.id);
+        } else if (passageId) {
+          // The bundled passage is no longer in this version of the app: keep reading the saved copy.
+          document = (await store.getAll('documents'))
+            .filter((d) => d.passageId === passageId && d.status !== 'finished')
+            .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+          if (document) chunks = await getDocumentChunks(store, document.id);
         }
         if (!document)
           throw new Error('This reading could not be found. It may have been deleted.');
