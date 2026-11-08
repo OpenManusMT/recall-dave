@@ -44,3 +44,16 @@ Method: attacked edge cases — interrupted and partial writes, unavailable or f
 | R4 | Oversized import files. | `reliability.test.ts` › R4. | Already rejected before parsing; now tested. | Test passes. | — |
 
 Safety re-checks in this pass (no change needed, tests already exist): pasted text containing scripts, links and “ignore previous instructions” is shown as inert text and never executed or followed (`features.spec.ts`); no request leaves the device (`pwa.spec.ts`); the experimental scorer cannot be switched on from the UI and stays disabled; the advanced scheduler cannot change real review dates (`schedulerMode` is fixed to `shadow` by `normaliseSettings`).
+
+## Pass 3 — performance and accessibility
+
+Method: measured first (bundle composition, start-up under 4× CPU throttling, data-scale timings, every axe finding at all impact levels), then fixed only verified problems.
+
+| # | Problem observed | Reproduction / measurement | Fix | Evidence | Remaining limitation |
+|---|---|---|---|---|---|
+| P1 | About 100 KB of the 548 KB start-up bundle was the schema validator, needed only to import a backup. | Bundle inspection of `apps/web/dist/assets`. | Backup export/import code loads on demand (`@recall/core/backup`); the service worker still precaches it, so import works offline. | Main bundle 548 KB → **454 KB** (gzip 158 KB → **132 KB**, −16%); lazy chunk 96 KB; precache 12 files; backup e2e tests pass. | The ~190 KB of bundled passages stays in the main bundle on purpose: everything must work offline from the first launch. |
+| P2 | Unknown whether long-term use would slow the app. | `packages/core/test/scale.test.ts`: a year of daily use (1,095 parts, 2,190 points). | No change needed. | Insights ≈ 50 ms, due-review query ≈ 58 ms (desktop CPU); guarded at < 500 ms. | iPhone CPUs are slower; still expected well under a second. |
+| P3 | Unknown start-up time on a slower device. | `e2e/perf.spec.ts` with 4× CPU throttling → `docs/evidence/perf-startup.json`. | No change needed. | Cold ≈ 395 ms, warm (service worker) ≈ 240 ms to first usable screen. | Not a physical-device measurement. |
+| A1 | Option groups (text size, colours, reading mode, onboarding) used radio semantics without arrow-key support: every option was a separate Tab stop, unlike the standard pattern screen-reader and keyboard users expect. | `e2e/usability.spec.ts` › A1. | Shared `RadioGroup` component: one Tab stop (roving tabindex), arrow keys / Home / End move and select. | Test passes. | — |
+| A2 | Multiple-choice answers were marked as radios, which implies arrow keys would move between them, and with radio semantics that would commit an answer. | `e2e/usability.spec.ts` › A2. | Answers are plain buttons in a labelled group (`aria-pressed`); arrow keys do nothing and an answer is only given by a deliberate tap/Enter. | Test passes. | — |
+| A3 | Needed confirmation that no lower-impact axe issues remained. | One-off axe probe of Home, Library, Settings, Progress, reading and question steps. | No findings at any impact level. | `e2e/a11y.spec.ts` continues to gate serious/critical in light, dark and high-contrast. | Automated checks cannot judge VoiceOver reading order, or how clear the wording is for a real reader. See the manual checklist in `docs/IPHONE-INSTALL-AND-TEST.md`. |

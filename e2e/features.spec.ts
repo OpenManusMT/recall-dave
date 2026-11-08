@@ -66,7 +66,7 @@ test.describe('reading flows', () => {
     await expect(
       page.getByRole('button', { name: 'Answer the question to continue' }),
     ).toBeDisabled();
-    await page.getByRole('radio').first().click();
+    await page.getByTestId('answer-option').first().click();
     await expect(page.getByText(/That’s right|Not quite/)).toBeVisible();
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page.getByText('Part finished.')).toBeVisible();

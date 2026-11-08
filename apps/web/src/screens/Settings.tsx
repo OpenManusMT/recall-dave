@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  backupFileName,
-  createBackup,
   deleteAllData,
   FIXED_CHUNK_CHOICES,
   FONT_SCALES,
-  parseBackup,
   readSnapshot,
-  type ParseResult,
   type Snapshot,
 } from '@recall/core';
+import type { ParseResult } from '@recall/core/backup';
+
+/** Backup code (and its schema validator) loads on demand; the service worker precaches it for offline use. */
+const loadBackup = () => import('@recall/core/backup');
 import { useApp } from '../lib/app-context';
 import { saveTextFile } from '../lib/download';
 import { navigate } from '../lib/router';
 import { Icon } from '../components/Icon';
 import { ConfirmDialog } from '../components/ui';
+import { RadioGroup } from '../components/RadioGroup';
 
 declare const __APP_VERSION__: string;
 
@@ -32,20 +33,7 @@ function Segmented<T extends string | number>({
   return (
     <fieldset className="stack" style={{ border: 0, padding: 0, margin: 0 }}>
       <legend style={{ fontWeight: 600, marginBottom: 8 }}>{label}</legend>
-      <div className="segmented" role="radiogroup" aria-label={label}>
-        {options.map((o) => (
-          <button
-            key={String(o.value)}
-            type="button"
-            role="radio"
-            aria-checked={o.value === value}
-            className="choice"
-            onClick={() => onChange(o.value)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
+      <RadioGroup label={label} value={value} options={options} onChange={onChange} />
     </fieldset>
   );
 }
@@ -102,7 +90,10 @@ export function SettingsScreen() {
   const exportBackup = async () => {
     setErrorMsg(null);
     try {
-      const snap = await readSnapshot(store);
+      const [snap, { createBackup, backupFileName }] = await Promise.all([
+        readSnapshot(store),
+        loadBackup(),
+      ]);
       const how = await saveTextFile(
         backupFileName(now()),
         JSON.stringify(createBackup(snap, now(), __APP_VERSION__), null, 1),
@@ -123,6 +114,7 @@ export function SettingsScreen() {
     setMessage(null);
     setErrorMsg(null);
     if (!file) return;
+    const { parseBackup } = await loadBackup();
     const result = parseBackup(await file.text());
     if (fileRef.current) fileRef.current.value = '';
     if (!result.ok) {

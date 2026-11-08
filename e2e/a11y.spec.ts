@@ -44,7 +44,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.getByLabel('Your words').fill('Locks raise boats');
     await page.getByRole('button', { name: 'Check my answer' }).click();
     await audit(page, 'question');
-    await page.getByRole('radio').first().click();
+    await page.getByTestId('answer-option').first().click();
     await audit(page, 'question answered');
     await page.getByRole('button', { name: 'Continue' }).click();
     await audit(page, 'check');

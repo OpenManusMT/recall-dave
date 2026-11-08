@@ -517,13 +517,13 @@ function QuestionBlock({
         {question.prompt}
       </p>
       {textVisible ? <p className="small muted">You can look at the text above.</p> : null}
-      <div className="choice-list" role="radiogroup" aria-labelledby={`q-${question.id}`}>
+      <div className="choice-list" role="group" aria-labelledby={`q-${question.id}`}>
         {question.options.map((o, i) => (
           <button
             key={i}
             type="button"
-            role="radio"
-            aria-checked={answer === i}
+            aria-pressed={answer === i}
+            data-testid="answer-option"
             className={`choice ${answered && i === question.answerIndex ? 'correct' : ''}`}
             onClick={() => !answered && onAnswer(i)}
             disabled={answered && answer !== i && i !== question.answerIndex}

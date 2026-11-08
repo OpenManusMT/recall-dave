@@ -46,7 +46,7 @@ test('core journey: read → hide → recall → check → save → review next 
       .isVisible()
       .catch(() => false)
   ) {
-    await page.getByRole('radio').first().click();
+    await page.getByTestId('answer-option').first().click();
     await page.getByRole('button', { name: 'Continue' }).click();
   }
   await page.getByRole('button', { name: 'Yes, I wrote about it' }).click();

@@ -3,6 +3,7 @@ import { FONT_SCALES, finishSession, getActiveSession, readSnapshot } from '@rec
 import { useApp } from '../lib/app-context';
 import { href, navigate } from '../lib/router';
 import { useFocusOnChange } from '../components/ui';
+import { RadioGroup } from '../components/RadioGroup';
 
 export function Onboarding() {
   const { settings, updateSettings } = useApp();
@@ -47,20 +48,13 @@ export function Onboarding() {
             The kettle clicked off. Steam drifted past the window as the morning light came in.
           </p>
         </div>
-        <div className="choice-list" role="radiogroup" aria-label="Text size">
-          {FONT_SCALES.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              role="radio"
-              aria-checked={settings.fontScale === f.value}
-              className="choice"
-              onClick={() => void updateSettings({ fontScale: f.value })}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <RadioGroup
+          className="choice-list"
+          label="Text size"
+          value={settings.fontScale}
+          options={FONT_SCALES}
+          onChange={(v) => void updateSettings({ fontScale: v })}
+        />
         <button type="button" className="btn primary block large" onClick={() => setStep(2)}>
           Continue
         </button>
@@ -72,26 +66,16 @@ export function Onboarding() {
       <h1 ref={ref} tabIndex={-1}>
         How would you like to answer?
       </h1>
-      <div className="choice-list" role="radiogroup" aria-label="Answer by">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={settings.inputPreference === 'typing'}
-          className="choice"
-          onClick={() => void updateSettings({ inputPreference: 'typing' })}
-        >
-          Typing
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={settings.inputPreference === 'dictation'}
-          className="choice"
-          onClick={() => void updateSettings({ inputPreference: 'dictation' })}
-        >
-          Speaking, using the microphone on the iPhone keyboard
-        </button>
-      </div>
+      <RadioGroup
+        className="choice-list"
+        label="Answer by"
+        value={settings.inputPreference}
+        options={[
+          { value: 'typing', label: 'Typing' },
+          { value: 'dictation', label: 'Speaking, using the microphone on the iPhone keyboard' },
+        ]}
+        onChange={(v) => void updateSettings({ inputPreference: v })}
+      />
       <p className="small muted">You can always type. You can change this later in Settings.</p>
       <button type="button" className="btn primary block large" onClick={() => void done()}>
         Start

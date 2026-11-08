@@ -14,6 +14,7 @@ import { useApp } from '../lib/app-context';
 import { href, navigate } from '../lib/router';
 import { Icon } from '../components/Icon';
 import { ConfirmDialog, TopBar } from '../components/ui';
+import { RadioGroup } from '../components/RadioGroup';
 
 const SUBJECT_LABEL: Record<string, string> = {
   food: 'Food',
@@ -52,26 +53,15 @@ export function Library() {
       <h1>Choose something to read</h1>
       <fieldset className="stack" style={{ border: 0, padding: 0, margin: 0 }}>
         <legend style={{ fontWeight: 600, marginBottom: 8 }}>How would you like to read?</legend>
-        <div className="segmented" role="radiogroup" aria-label="Reading mode">
-          <button
-            type="button"
-            role="radio"
-            aria-checked={mode === 'remember'}
-            className="choice"
-            onClick={() => setMode('remember')}
-          >
-            Help me remember this
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={mode === 'read'}
-            className="choice"
-            onClick={() => setMode('read')}
-          >
-            Help me read this
-          </button>
-        </div>
+        <RadioGroup
+          label="Reading mode"
+          value={mode}
+          options={[
+            { value: 'remember', label: 'Help me remember this' },
+            { value: 'read', label: 'Help me read this' },
+          ]}
+          onChange={setMode}
+        />
         <p className="small muted" style={{ margin: 0 }}>
           {mode === 'remember'
             ? 'Read a small part, hide it, write what you remember, then check with hints if you need them. Points come back later for review.'

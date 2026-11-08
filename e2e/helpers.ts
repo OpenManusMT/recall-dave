@@ -33,7 +33,7 @@ export async function doChunk(
       .isVisible()
       .catch(() => false)
   ) {
-    await page.getByRole('radio').first().click();
+    await page.getByTestId('answer-option').first().click();
     await page.getByRole('button', { name: 'Continue' }).click();
   }
   for (let k = 0; ; k++) {

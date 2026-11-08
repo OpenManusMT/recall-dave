@@ -38,7 +38,7 @@ test('capture key states', async ({ page }) => {
     .fill('Yeast eats the sugar in the flour and gives off gas, which makes bubbles.');
   await shot(page, '06-recall');
   await page.getByRole('button', { name: 'Check my answer' }).click();
-  await page.getByRole('radio').first().click();
+  await page.getByTestId('answer-option').first().click();
   await shot(page, '07-question');
   await page.getByRole('button', { name: 'Continue' }).click();
   await shot(page, '08-check-point-structural-cue');

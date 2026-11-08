@@ -45,3 +45,48 @@ test('U3/U5: while checking, what you wrote is visible and the cue wording is pl
     page.getByRole('button', { name: 'I didn’t write it, but I remember it now' }),
   ).toBeVisible();
 });
+
+// Improvement pass 3 (accessibility): radio groups follow the WAI-ARIA pattern.
+test('A1: option groups are one Tab stop and arrow keys change the choice', async ({ page }) => {
+  await openApp(page);
+  await skipOnboarding(page);
+  await openApp(page, DAY0, '#/settings');
+  const group = page.getByRole('radiogroup', { name: 'Text size' });
+  const selected = group.getByRole('radio', { checked: true });
+  await selected.focus();
+  await expect(selected).toHaveText('Large');
+  await page.keyboard.press('ArrowRight');
+  await expect(group.getByRole('radio', { name: 'Larger' })).toBeFocused();
+  await expect(group.getByRole('radio', { name: 'Larger' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await page.keyboard.press('End');
+  await expect(group.getByRole('radio', { name: 'Largest' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  // Only the selected option is in the Tab order.
+  await expect(group.locator('[tabindex="0"]')).toHaveCount(1);
+  await page.keyboard.press('Tab');
+  await expect(
+    page.getByRole('radiogroup', { name: 'Reading font' }).getByRole('radio', { checked: true }),
+  ).toBeFocused();
+});
+
+test('A2: answer options are buttons, so arrow keys can never submit an answer by accident', async ({
+  page,
+}) => {
+  await openApp(page);
+  await skipOnboarding(page);
+  await openApp(page, DAY0, '#/read/p05-garden-compost');
+  await page.getByRole('button', { name: /I’ve read it/ }).click();
+  await page.getByLabel('Your words').fill('greens and browns');
+  await page.getByRole('button', { name: 'Check my answer' }).click();
+  const first = page.getByTestId('answer-option').first();
+  await first.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('button', { name: 'Choose an answer to continue' })).toBeDisabled();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText(/That’s right|Not quite/)).toBeVisible();
+});
