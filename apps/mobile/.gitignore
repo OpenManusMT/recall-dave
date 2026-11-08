@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# Expo / Metro
+.expo/
+dist/
+dist-ios/
+web-build/
+.metro-health-check*
+
+# generated native folders (EAS Build creates them in the cloud)
+ios/
+android/
+
+# local data and secrets: never commit
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+credentials.json
+credentials/
+*.p8
+*.p12
+*.key
+*.jks
+*.mobileprovision
+*.pem
+
+# debug / OS
+npm-debug.*
+*.tsbuildinfo
+.DS_Store

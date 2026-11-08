@@ -1,0 +1,20 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    // The shared sources in ../../packages are type-checked too. Their own imports
+    // must resolve from this app's node_modules (there may be no node_modules next
+    // to them), just as metro.config.js does for bundling. app.json sets
+    // experiments.tsconfigPaths = false so these paths do not affect Metro.
+    "paths": {
+      "@recall/core": ["./node_modules/@recall/core"],
+      "@recall/content": ["./node_modules/@recall/content"],
+      "zod": ["./node_modules/zod"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist-ios", "ios", "android"]
+}
