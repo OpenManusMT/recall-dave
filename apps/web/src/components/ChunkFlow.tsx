@@ -120,12 +120,17 @@ export function ChunkFlow(props: ChunkFlowProps) {
     setTooMuch(true);
     strategy('too_much');
     const replacement = await props.onTooMuch();
-    if (replacement && replacement.id !== chunk.id && replacement.wordCount < chunk.wordCount) {
+    if (replacement) {
+      const shorter = replacement.wordCount < chunk.wordCount;
       setChunk(replacement);
       setLadders(replacement.ideas.map(() => initialLadder()));
-      setTooMuchNote('This part is now shorter. Later parts will be shorter too.');
+      setTooMuchNote(
+        shorter
+          ? 'This part is now shorter. Later parts will be shorter too.'
+          : 'The next parts will be shorter. This part could not be split without breaking up an idea.',
+      );
     } else {
-      setTooMuchNote('The next parts will be shorter. This part could not be split without breaking up an idea.');
+      setTooMuchNote('The next parts will be shorter.');
     }
   };
 

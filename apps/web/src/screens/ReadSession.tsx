@@ -129,7 +129,7 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
         }
       />
       <ChunkFlow
-        key={`${chunk.id}:${flowKey}`}
+        key={`${index}:${flowKey}`}
         kind={kind}
         sessionId={session.id}
         document={document}

@@ -47,10 +47,10 @@ function Toggle({ label, hint, checked, onChange }: { label: string; hint?: stri
   const id = `t-${label.replace(/\W+/g, '-').toLowerCase()}`;
   return (
     <div>
-      <div className="toggle">
-        <label htmlFor={id}>{label}</label>
+      <label className="toggle" htmlFor={id}>
+        <span>{label}</span>
         <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} aria-describedby={hint ? `${id}-h` : undefined} />
-      </div>
+      </label>
       {hint ? (
         <p id={`${id}-h`} className="small muted" style={{ marginTop: 0 }}>
           {hint}

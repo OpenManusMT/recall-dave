@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getSettings, MemoryStore, saveSettings, type RecallStore, type Settings, DEFAULT_SETTINGS } from '@recall/core';
+import { getSettings, MemoryStore, normaliseSettings, saveSettings, type RecallStore, type Settings, DEFAULT_SETTINGS } from '@recall/core';
 import { IdbStore } from './idb-store';
 
 export type Persistence = 'persistent' | 'best-effort' | 'memory-only';
@@ -100,9 +100,15 @@ export function AppProvider({ children, initialStore, initialPersistence }: { ch
 
   const updateSettings = useCallback(
     async (patch: Partial<Settings>) => {
-      const next = await saveSettings(store, { ...settings, ...patch });
+      // Optimistic: the control responds immediately; the save follows.
+      const next = normaliseSettings({ ...settings, ...patch });
       setSettings(next);
       applySettingsToDocument(next);
+      try {
+        await saveSettings(store, next);
+      } catch {
+        setError('That setting could not be saved. It will apply until you close Recall.');
+      }
     },
     [store, settings],
   );

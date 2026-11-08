@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { dueReviewGroups } from '@recall/core';
 import { useApp } from './lib/app-context';
 import { navigate, useRoute } from './lib/router';
@@ -23,6 +23,17 @@ export function App() {
   useEffect(() => {
     if (!settings.onboardingDone && first !== 'welcome') navigate('/welcome', { replace: true });
   }, [settings.onboardingDone, first]);
+
+  // On every screen change, move focus to the main region so keyboard and VoiceOver users start at the top.
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    document.getElementById('main')?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0 });
+  }, [route.path]);
 
   useEffect(() => {
     void dueReviewGroups(store, now())
