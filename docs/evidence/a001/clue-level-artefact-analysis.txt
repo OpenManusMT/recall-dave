@@ -1,0 +1,18 @@
+A001 clue-level label analysis (generated from the unchanged cases.jsonl)
+For each primary category: expected clue level vs source index (S01..S20).
+correct_paraphrase S01:0 S02:0 S03:0 S04:0 S05:0 S06:0 S07:0 S08:0 S09:0 S10:0 S11:0 S12:0 S13:0 S14:0 S15:0 S16:0 S17:0 S18:0 S19:0 S20:0
+partial_recall S01:1 S02:2 S03:1 S04:2 S05:1 S06:2 S07:1 S08:2 S09:1 S10:2 S11:1 S12:2 S13:1 S14:2 S15:1 S16:2 S17:1 S18:2 S19:1 S20:2
+wrong_answer S01:2 S02:3 S03:4 S04:5 S05:2 S06:3 S07:4 S08:5 S09:2 S10:3 S11:4 S12:5 S13:2 S14:3 S15:4 S16:5 S17:2 S18:3 S19:4 S20:5
+contradiction S01:2 S02:3 S03:2 S04:3 S05:2 S06:3 S07:2 S08:3 S09:2 S10:3 S11:2 S12:3 S13:2 S14:3 S15:2 S16:3 S17:2 S18:3 S19:2 S20:3
+vague_answer S01:1 S03:1 S05:1 S07:1 S09:1 S11:1 S13:1 S15:1 S17:1 S19:1
+
+partial_recall: clue = 1 if source index odd else 2
+wrong_answer: clue = 2 + ((source index - 1) mod 4)
+contradiction: clue = 2 if source index odd else 3
+Rules hold for all 100 cases: True
+Cases with a clue level: 90
+Best achievable WITHOUT using source/case ids (one content-based choice per category):
+  exact: correct 20 + vague 10 + partial 10 + contradiction 10 + wrong 5 = 55 / 90 = 0.6111
+  within +/-1: 20 + 10 + 20 + 20 + 15 = 85 / 90 = 0.9444
+Gate requires exact >= 0.80 and within +/-1 >= 0.95, so the clue gate cannot be met by a scorer that
+judges only the source text, key ideas and transcript, unless it exploits the id ordering (which we refuse to do).
