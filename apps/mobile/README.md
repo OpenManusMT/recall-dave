@@ -24,8 +24,12 @@ Checked on a Linux machine (details and exact output in [`VERIFICATION.txt`](./V
 - `npx expo export --platform ios` bundles the whole app for iOS with Metro, including the TypeScript sources from
   `packages/`, and compiles it to Hermes bytecode. This also worked in a fresh copy with no `node_modules` at the repo
   root, which is the situation on a new Windows PC.
-- `npm test` passes: Jest tests for the SQLite adapter, run against a real SQLite database, and for the colour and text
-  tokens.
+- `npm test` passes 18 Jest tests (`jest-expo/ios` preset):
+  - the SQLite adapter, against a real SQLite database (Node's built-in one), shaped like expo-sqlite
+  - the real `ChunkFlow`, rendered and driven button by button: read, hide, recall, question, clue ladder and save
+  - the whole Expo Router app, with an in-memory store in place of SQLite: onboarding, Start a session, Pause and
+    "Continue where you left off", due reviews first and then something new, every tab, and Delete all data
+  - the colour and text tokens
 - `npx expo-doctor` passed 18 of 20 checks. The other 2 could not run, because the build machine cannot reach Expo's API
   or React Native Directory. They are **not** verified.
 
@@ -33,7 +37,8 @@ Checked on a Linux machine (details and exact output in [`VERIFICATION.txt`](./V
 
 - No EAS build has been run. The app is **not signed**.
 - The app has **not been run on a physical iPhone or a simulator**. Nobody has looked at the screens running, and
-  VoiceOver has not been tested on a device.
+  VoiceOver has not been tested on a device. The Jest tests render React components in Node; they do not run native code
+  such as SQLite, speech, the share sheet or the file picker.
 - Expo Go compatibility has not been checked (see below).
 - These Windows steps have not been run on Windows.
 

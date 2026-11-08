@@ -15,7 +15,7 @@ import { resolvePalette, typeScale, type Palette, type TypeScale } from './theme
 /** "persistent": SQLite on this iPhone. "memory-only": storage could not be opened (nothing is kept). */
 export type Persistence = 'persistent' | 'memory-only';
 
-interface AppState {
+export interface AppState {
   store: RecallStore;
   settings: Settings;
   updateSettings: (patch: Partial<Settings>) => Promise<void>;
@@ -31,6 +31,9 @@ interface AppState {
 }
 
 const Ctx = createContext<AppState | null>(null);
+
+/** Provides a ready-made app state (used by tests; the app itself uses AppProvider). */
+export const AppStateContext = Ctx;
 
 export function useApp(): AppState {
   const v = useContext(Ctx);

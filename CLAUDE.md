@@ -27,7 +27,7 @@ cd apps/mobile && npm ci && npx tsc --noEmit && npx expo export --platform ios -
 
 - Domain logic: `packages/core/src` (`repo.ts` is the main operations API; `ladder.ts` the self-check; `scheduler.ts`; `chunker.ts`; `backup.ts`).
 - Web UI: `apps/web/src` (`components/ChunkFlow.tsx` is the core read → recall → check flow).
-- Native UI: `apps/mobile/app` (mirrors the web flows on the same core).
+- Native UI: `apps/mobile/src/app` (Expo Router routes) and `apps/mobile/src/screens` (mirrors the web flows on the same core).
 - Content: `packages/content/src` — every passage must pass `validatePassage` (verbatim spans, qualifiers, UK spelling).
 
 ## Known next steps
