@@ -24,7 +24,6 @@ import { useApp } from '../lib/app-context';
 import { canReadAloud, speak, stopSpeaking } from '../lib/speech';
 import { Icon } from './Icon';
 import { ProgressBar, ReadingText, useFocusOnChange } from './ui';
-import { ExperimentalHints } from './ExperimentalHints';
 
 type Phase = 'reading' | 'recall' | 'question' | 'check' | 'saving' | 'done';
 
@@ -409,7 +408,6 @@ export function ChunkFlow(props: ChunkFlowProps) {
           idea={idea}
           state={state}
           chunkText={chunk.text}
-          recallText={recallText}
           onAction={(a) => dispatch(k, a)}
         />
         {state.phase === 'done' ? (
@@ -550,16 +548,13 @@ function IdeaLadder({
   idea,
   state,
   chunkText,
-  recallText,
   onAction,
 }: {
   idea: KeyIdeaSnapshot;
   state: LadderState;
   chunkText: string;
-  recallText: string;
   onAction: (a: LadderAction) => void;
 }) {
-  const { settings } = useApp();
   const revealed = (
     <div className="stack">
       <div className="card good">
@@ -580,9 +575,6 @@ function IdeaLadder({
           <span className="cue-label">{LEVEL_LABEL[1]}</span>
           {idea.cues.structural}
         </div>
-        {settings.experimentalScorer ? (
-          <ExperimentalHints idea={idea} recallText={recallText} />
-        ) : null}
         <p style={{ fontWeight: 600 }}>Is this point in what you wrote?</p>
         <div className="stack">
           <button

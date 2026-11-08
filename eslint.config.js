@@ -32,7 +32,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/**', 'e2e/**', 'tests/**'],
+    files: ['scripts/**', 'e2e/**', 'tests/**', 'packages/*/test/**'],
     rules: { 'no-console': 'off' },
   },
   {
