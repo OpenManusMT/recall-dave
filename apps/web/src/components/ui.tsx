@@ -94,6 +94,22 @@ export function ConfirmDialog({
     ref.current?.querySelector<HTMLElement>('h2')?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onCancel();
+      if (e.key !== 'Tab' || !ref.current) return;
+      // Keep keyboard focus inside the dialog while it is open.
+      const items = [
+        ...ref.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input'),
+      ];
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !ref.current.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !ref.current.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => {

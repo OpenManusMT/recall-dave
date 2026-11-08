@@ -57,3 +57,38 @@ Method: measured first (bundle composition, start-up under 4× CPU throttling, d
 | A1 | Option groups (text size, colours, reading mode, onboarding) used radio semantics without arrow-key support: every option was a separate Tab stop, unlike the standard pattern screen-reader and keyboard users expect. | `e2e/usability.spec.ts` › A1. | Shared `RadioGroup` component: one Tab stop (roving tabindex), arrow keys / Home / End move and select. | Test passes. | — |
 | A2 | Multiple-choice answers were marked as radios, which implies arrow keys would move between them, and with radio semantics that would commit an answer. | `e2e/usability.spec.ts` › A2. | Answers are plain buttons in a labelled group (`aria-pressed`); arrow keys do nothing and an answer is only given by a deliberate tap/Enter. | Test passes. | — |
 | A3 | Needed confirmation that no lower-impact axe issues remained. | One-off axe probe of Home, Library, Settings, Progress, reading and question steps. | No findings at any impact level. | `e2e/a11y.spec.ts` continues to gate serious/critical in light, dark and high-contrast. | Automated checks cannot judge VoiceOver reading order, or how clear the wording is for a real reader. See the manual checklist in `docs/IPHONE-INSTALL-AND-TEST.md`. |
+
+## Final independent audit (Stage F) — findings and fixes
+
+An independent reviewer, who had not written the code, tried to break the PWA at 375×667 and 390×844 (Playwright, axe and reading the code). Every confirmed defect was fixed with a regression test: `packages/core/test/audit-regressions.test.ts` (core) and `e2e/audit.spec.ts` (end to end).
+
+| # | Severity | Problem observed (reproduction) | Fix | Regression test |
+|---|---|---|---|---|
+| F1 | High | The automatic part size shrank again in **every** new session on the same evidence (80 → 68 → 58 → 49 → 42). Screens kept an old size and could write it back. | Adaptation only uses parts first read **since the last size change** (`lastAdaptationAt`); sessions start before a reading is planned; settings changes are applied to the stored settings, not a screen’s copy; “Too much text” also records the change time. | core F1; e2e F1 (one change to 68, unchanged afterwards, not overwritten) |
+| F2 | High | Read at 21:00, reviewed at 08:00 next day with everything remembered: the point did not advance, because “same day” meant under 24 hours while due dates fall at midnight. It was also left out of next-day recall. | Elapsed time is counted in local calendar days throughout the scheduler, attempts, progress and adaptation. | core F2 (evening → morning advances; same-day repeat still does not) |
+| F3 | Medium | “Help me read” moved the reading position, so “Help me remember” skipped those parts. | Separate `readNextChunkIndex` for read mode (optional field; backups validated). | core F3; e2e F3 |
+| F4 | Medium | A typed review answer was lost on Pause. “Start a session” discarded a half-written answer and moved “Next up” on. | Review run restores the draft and puts that part first. New sessions carry the previous draft. Home continues the draft first. An opened passage stays “next up”. | core F4 ×2; e2e F4 |
+| F5 | Medium | A double tap landed on the next step’s button: it skipped the writing step, opened “Show text”, or answered “Yes, I wrote about it”. | For 350 ms after each step change the new step ignores pointer input. The guard is computed during render, so even the first frame is guarded; keyboard input is unaffected. A first attempt, which set the guard in an effect, failed the test because the effect runs after paint. | e2e F5 (three double-tap cases) |
+| F6 | Medium | With nothing written, “Yes, I wrote about it” could credit unaided recall. | With an empty answer only “I remember it now” and “give me a hint” are offered. | e2e F6 |
+| F7 | Medium | On hosts that send `Vary: Origin` (including `vite preview`), the service worker’s cache lookups failed. The app was blank offline in a new tab, export failed, and import failed silently. The existing offline test missed it because it reloaded while online. | Cache lookups use `ignoreVary`; loading the on-demand backup code shows a clear message if it fails. | e2e F7 opens a fresh tab offline and exports and imports. Removing `ignoreVary` from the built worker makes it fail (checked). |
+| F8 | Medium | “Help me read” and fresh-text sessions promised reviews that never happen. Re-reads said “tomorrow” when the real date was later. | Finish and summary text depend on what was actually scheduled; the part summary shows the real next review date. | e2e F8 |
+| F9 | Low–Med | “Understanding questions … first time” counted re-asked questions in reviews. | The metric uses first exposures only. Reviews only ask a second, not-yet-seen question. | core F9 |
+| F10 | Low | At “Very large” and “Largest”, words broke mid-word (“Review\|s”, “Progres\|s”). | `overflow-wrap: break-word` (not `anywhere`); tab labels capped at 13 px. | e2e F10; existing no-sideways-scroll tests still pass |
+| F11 | Low | With a fixed size, “Too much text” produced a size not in the list, so no option looked selected. | A “Your size (about N words)” option appears and is selected. | e2e F11 |
+| F12 | Low | Tab moved out of confirmation dialogs to the links behind them. | Focus is kept inside the dialog. | e2e F12 |
+| F13 | Low | “1 readings and 1 answers”. After a restore, “Last backup: never”. | Correct plurals; a restored backup sets “last backup” to its export time. | core F13; e2e F13 |
+| F14 | Low (docs) | Docs referred to a missing release report and the wrong workflow file name; the stored verification summary was stale. | Release report written; file name corrected; verification re-run at the release commit. | — |
+| F15 | Low | Home showed bare percentages from as few as 3 checks. | Home shows “· N checks” next to each percentage. | e2e F15 |
+
+The reviewer's lower-confidence observations, also addressed:
+- Review screens now name the part.
+- Partial review checks explain that only due points are checked.
+- A resumed answer that had reached the question is not asked it again.
+- “Help me read” respects the questions setting.
+- The paste screen no longer shows an error from the first keystroke, and its count matches.
+- The answer box shows a counter near its 4,000-character limit.
+- The `?now=` test clock only works on `localhost`.
+- Every theme-colour tag is updated.
+- An unfinished fresh-text passage is offered again.
+
+Not changed (recorded): re-reading a finished bundled passage keeps its points linked to the first copy. This is harmless in the UI, which only allows deleting pasted readings.

@@ -60,6 +60,7 @@ export const recordSchemas = {
     passageId: z.string().max(100).nullable(),
     status: z.enum(['new', 'in_progress', 'finished']),
     nextChunkIndex: z.number().int().min(0),
+    readNextChunkIndex: z.number().int().min(0).optional(),
     chunkCount: z.number().int().min(0),
   }),
   chunks: z.object({
@@ -281,6 +282,10 @@ export function parseBackup(text: string): ParseResult {
   }
   // Settings are clamped into safe ranges.
   snap.settings = snap.settings.length ? [normaliseSettings(snap.settings[0] as never)] : [];
+  // The file itself is a backup made at `exportedAt`.
+  if (snap.settings[0] && !snap.settings[0].lastBackupAt) {
+    snap.settings[0] = { ...snap.settings[0], lastBackupAt: env.data.exportedAt };
+  }
   // Referential integrity: drop orphans with a warning rather than importing broken links.
   const docIds = new Set(snap.documents.map((d) => d.id));
   const before = {

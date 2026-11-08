@@ -75,7 +75,7 @@ export function ReviewsOverview() {
 }
 
 export function ReviewRun({ thenRead }: { thenRead: boolean }) {
-  const { store, now } = useApp();
+  const { store, now, adoptSettings } = useApp();
   const [groups, setGroups] = useState<DueGroup[] | null>(null);
   const [i, setI] = useState(0);
   const [session, setSession] = useState<SessionRecord | null>(null);
@@ -83,12 +83,21 @@ export function ReviewRun({ thenRead }: { thenRead: boolean }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const g = await dueReviewGroups(store, now());
+      const due = await dueReviewGroups(store, now());
       const active = await getActiveSession(store);
       const s =
         active && active.mode === 'remember'
           ? active
-          : (await startSession(store, 'remember', now())).session;
+          : await (async () => {
+              const started = await startSession(store, 'remember', now());
+              adoptSettings(started.settings);
+              return started.session;
+            })();
+      // A review answer typed before pausing comes first, with its words restored.
+      const draftChunk = s.draft?.kind === 'review' ? s.draft.chunkId : null;
+      const g = [...due].sort((a, b) =>
+        a.chunk.id === draftChunk ? -1 : b.chunk.id === draftChunk ? 1 : 0,
+      );
       if (alive) {
         setGroups(g);
         setSession(s);
@@ -97,7 +106,7 @@ export function ReviewRun({ thenRead }: { thenRead: boolean }) {
     return () => {
       alive = false;
     };
-  }, [store, now]);
+  }, [store, now, adoptSettings]);
 
   if (!groups || !session) return <p role="status">Loading…</p>;
 
@@ -157,6 +166,7 @@ export function ReviewRun({ thenRead }: { thenRead: boolean }) {
         chunk={g.chunk}
         ideas={g.ideas}
         partLabel={`Review ${i + 1} of ${groups.length}`}
+        draft={session.draft}
         progress={(i + 0.5) / groups.length}
         onDone={() => undefined}
         doneActions={() => (

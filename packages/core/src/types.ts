@@ -83,8 +83,10 @@ export interface ReadingDocument {
   /** Bundled passage id for samples/probes; null for pasted text. */
   passageId: string | null;
   status: 'new' | 'in_progress' | 'finished';
-  /** Index of the next chunk to read. */
+  /** Index of the next chunk to practise in "Help me remember" mode. */
   nextChunkIndex: number;
+  /** Separate position for "Help me read" mode, so reading never skips parts to be practised. */
+  readNextChunkIndex?: number;
   /** Total number of chunks currently planned. */
   chunkCount: number;
   updatedAt: ISODate;
@@ -255,6 +257,8 @@ export interface Settings {
   /** Experimental local scorer hints (never affects schedule). Off by default. */
   experimentalScorer: boolean;
   lastAdaptationSessionId: string | null;
+  /** When the part size last changed (rule or "Too much text"); only newer evidence is used next. */
+  lastAdaptationAt: ISODate | null;
   /** When the learner last exported a backup (for a gentle reminder; browsers can clear site data). */
   lastBackupAt: ISODate | null;
 }

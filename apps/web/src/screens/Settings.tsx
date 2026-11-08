@@ -10,6 +10,10 @@ import type { ParseResult } from '@recall/core/backup';
 
 /** Backup code (and its schema validator) loads on demand; the service worker precaches it for offline use. */
 const loadBackup = () => import('@recall/core/backup');
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const LOAD_FAILED =
+  'This part of Recall could not be loaded. Open Recall once while connected to the internet, then try again.';
 import { useApp } from '../lib/app-context';
 import { saveTextFile } from '../lib/download';
 import { navigate } from '../lib/router';
@@ -114,7 +118,14 @@ export function SettingsScreen() {
     setMessage(null);
     setErrorMsg(null);
     if (!file) return;
-    const { parseBackup } = await loadBackup();
+    let parseBackup: Awaited<ReturnType<typeof loadBackup>>['parseBackup'];
+    try {
+      ({ parseBackup } = await loadBackup());
+    } catch {
+      setErrorMsg(LOAD_FAILED);
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
     const result = parseBackup(await file.text());
     if (fileRef.current) fileRef.current.value = '';
     if (!result.ok) {
@@ -227,6 +238,15 @@ export function SettingsScreen() {
           options={[
             { value: 0, label: `Automatic (now ${settings.adaptiveChunkWords} words)` },
             ...FIXED_CHUNK_CHOICES,
+            ...(settings.chunkMode === 'fixed' &&
+            !FIXED_CHUNK_CHOICES.some((c) => c.value === settings.fixedChunkWords)
+              ? [
+                  {
+                    value: settings.fixedChunkWords,
+                    label: `Your size (about ${settings.fixedChunkWords} words)`,
+                  },
+                ]
+              : []),
           ]}
           onChange={(v) =>
             void updateSettings(
@@ -390,8 +410,8 @@ export function SettingsScreen() {
         >
           <p>
             This replaces everything currently in Recall on this device with the backup:{' '}
-            {pendingImport.counts.documents ?? 0} readings and {pendingImport.counts.attempts ?? 0}{' '}
-            answers.
+            {plural(pendingImport.counts.documents ?? 0, 'reading')} and{' '}
+            {plural(pendingImport.counts.attempts ?? 0, 'answer')}.
             {pendingImport.migratedFrom
               ? ' The backup is from an older version and will be upgraded.'
               : ''}

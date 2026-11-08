@@ -161,6 +161,7 @@ export function AddReading() {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tried, setTried] = useState(false);
   const preview = text.trim() ? validatePastedReading(title, text) : null;
   const parts = preview?.ok
     ? planPastedChunks(
@@ -175,6 +176,8 @@ export function AddReading() {
     : 0;
 
   const save = async () => {
+    setTried(true);
+    if (!preview?.ok) return;
     setBusy(true);
     setError(null);
     try {
@@ -223,7 +226,7 @@ export function AddReading() {
           the text are shown as plain words and never opened.
         </p>
       </div>
-      {error || (preview && !preview.ok) ? (
+      {error || (preview && !preview.ok && (tried || text.length > MAX_PASTED_CHARS)) ? (
         <p className="banner error" role="alert">
           {error ?? (preview && !preview.ok ? preview.error : '')}
         </p>
@@ -232,7 +235,7 @@ export function AddReading() {
         type="button"
         className="btn primary block large"
         onClick={() => void save()}
-        disabled={busy || !preview?.ok}
+        disabled={busy || !text.trim()}
       >
         Save and start reading
       </button>

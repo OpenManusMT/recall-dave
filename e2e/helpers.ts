@@ -62,3 +62,26 @@ export async function doChunk(
   }
   await expect(page.getByRole('button', { name: /Finish (for now|session)/ })).toBeVisible();
 }
+
+/** Read the settings record straight from IndexedDB (to wait until a change is really stored). */
+export function storedSettings(page: Page): Promise<Record<string, unknown> | undefined> {
+  return page.evaluate(
+    () =>
+      new Promise<Record<string, unknown> | undefined>((resolve) => {
+        const open = indexedDB.open('recall');
+        open.onsuccess = () => {
+          const db = open.result;
+          const get = db.transaction('settings').objectStore('settings').get('settings');
+          get.onsuccess = () => {
+            resolve(get.result as Record<string, unknown> | undefined);
+            db.close();
+          };
+          get.onerror = () => {
+            resolve(undefined);
+            db.close();
+          };
+        };
+        open.onerror = () => resolve(undefined);
+      }),
+  );
+}

@@ -1,5 +1,6 @@
 import {
   createContext,
+  useRef,
   useCallback,
   useContext,
   useEffect,
@@ -24,6 +25,8 @@ interface AppState {
   store: RecallStore;
   settings: Settings;
   updateSettings: (patch: Partial<Settings>) => Promise<void>;
+  /** Adopt settings that core code has already saved (e.g. a session's part-size adaptation). */
+  adoptSettings: (s: Settings) => void;
   /** Bumped after every data change so screens can reload. */
   dataVersion: number;
   refresh: () => void;
@@ -51,14 +54,18 @@ function applySettingsToDocument(s: Settings) {
   root.dataset.font = s.readingFont;
   root.dataset.motion = s.reduceMotion ? 'reduce' : 'auto';
   root.style.setProperty('--scale', String(s.fontScale));
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', dark ? '#12161d' : '#1f4e8c');
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
+    m.setAttribute('content', dark ? '#12161d' : '#1f4e8c');
+    m.removeAttribute('media');
+  });
 }
 
 /** Test hook: lets end-to-end tests pin the clock via `?now=` in the page URL (never used otherwise). */
 function clock(): () => Date {
   const fixed = new URLSearchParams(window.location.search).get('now');
-  if (fixed && !Number.isNaN(Date.parse(fixed))) {
+  // Only honoured on a local test server, never on a hosted copy (it would corrupt real schedules).
+  const local = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  if (local && fixed && !Number.isNaN(Date.parse(fixed))) {
     const offset = Date.parse(fixed) - Date.now();
     return () => new Date(Date.now() + offset);
   }
@@ -99,12 +106,22 @@ export function AppProvider({
   const [dataVersion, setDataVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const now = useMemo(clock, []);
+  // Single source of truth for the newest settings: quick successive changes build on each
+  // other, and an older copy (e.g. a screen's) can never overwrite a newer one.
+  const latest = useRef<Settings>(DEFAULT_SETTINGS);
+  const pendingWrites = useRef(0);
 
   useEffect(() => {
     let alive = true;
     getSettings(store)
       .then((s) => {
         if (!alive) return;
+        // While a change is still being written, the in-memory copy is newer than storage.
+        if (pendingWrites.current > 0) {
+          setReady(true);
+          return;
+        }
+        latest.current = s;
         setSettings(s);
         applySettingsToDocument(s);
         setReady(true);
@@ -129,18 +146,30 @@ export function AppProvider({
 
   const updateSettings = useCallback(
     async (patch: Partial<Settings>) => {
-      // Optimistic: the control responds immediately; the save follows.
-      const next = normaliseSettings({ ...settings, ...patch });
+      // Optimistic: the control responds immediately.
+      const next = normaliseSettings({ ...latest.current, ...patch });
+      latest.current = next;
       setSettings(next);
       applySettingsToDocument(next);
+      pendingWrites.current += 1;
+      // Written immediately: IndexedDB commits overlapping read-write transactions in creation
+      // order, and every write carries the complete newest settings, so the last change wins.
       try {
         await saveSettings(store, next);
       } catch {
         setError('That setting could not be saved. It will apply until you close Recall.');
+      } finally {
+        pendingWrites.current -= 1;
       }
     },
-    [store, settings],
+    [store],
   );
+
+  const adoptSettings = useCallback((s: Settings) => {
+    latest.current = s;
+    setSettings(s);
+    applySettingsToDocument(s);
+  }, []);
 
   const refresh = useCallback(() => setDataVersion((v) => v + 1), []);
 
@@ -149,6 +178,7 @@ export function AppProvider({
       store,
       settings,
       updateSettings,
+      adoptSettings,
       dataVersion,
       refresh,
       persistence: initialPersistence,
@@ -156,7 +186,17 @@ export function AppProvider({
       setError,
       now,
     }),
-    [store, settings, updateSettings, dataVersion, refresh, initialPersistence, error, now],
+    [
+      store,
+      settings,
+      updateSettings,
+      adoptSettings,
+      dataVersion,
+      refresh,
+      initialPersistence,
+      error,
+      now,
+    ],
   );
   if (!ready) return <div className="main" aria-busy="true" />;
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

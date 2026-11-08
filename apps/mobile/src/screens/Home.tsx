@@ -53,7 +53,9 @@ export function Home() {
   };
 
   const startSessionNow = () => {
-    if (data.due > 0) router.push('/review-run?then=read');
+    // Never discard a half-written answer: continue it first.
+    if (data.active?.draft && data.activeDoc) resume();
+    else if (data.due > 0) router.push('/review-run?then=read');
     else if (data.suggestion) router.push(`/read/${data.suggestion.id}`);
     else router.navigate('/library');
   };

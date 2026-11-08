@@ -91,6 +91,7 @@ export function Finish({ sessionId }: { sessionId: string }) {
     points: number;
     own: number;
     reviews: number;
+    scheduled: number;
   } | null>(null);
   useEffect(() => {
     void (async () => {
@@ -103,6 +104,7 @@ export function Finish({ sessionId }: { sessionId: string }) {
         reviews: attempts.filter((a) => a.kind === 'review').length,
         points: checks.length,
         own: checks.filter((c) => c.outcome === 'correct' && c.clueLevel === 0).length,
+        scheduled: attempts.filter((a) => a.kind === 'learn' || a.kind === 'review').length,
       });
       const active = await getActiveSession(store);
       if (active?.id === sessionId) await finishSession(store, sessionId, now());
@@ -137,8 +139,9 @@ export function Finish({ sessionId }: { sessionId: string }) {
         </div>
       ) : null}
       <p className="muted">
-        Your progress is saved on this device. The points will come back under Reviews when they are
-        due.
+        {summary && summary.scheduled > 0
+          ? 'Your progress is saved on this device. The points will come back under Reviews when they are due.'
+          : 'Your progress is saved on this device.'}
       </p>
       <a className="btn primary block large" href={href('/')}>
         Back to home

@@ -59,7 +59,10 @@ describe('backup', () => {
     expect(parsed.migratedFrom).toBeNull();
     const fresh = new MemoryStore();
     await fresh.replaceAll(parsed.snapshot);
-    expect(await readSnapshot(fresh)).toEqual(snap);
+    const restored = await readSnapshot(fresh);
+    // The restored settings remember that a backup exists (made at exportedAt); all else is identical.
+    expect(restored.settings[0]?.lastBackupAt).toBe(T0.toISOString());
+    expect({ ...restored, settings: [] }).toEqual({ ...snap, settings: [] });
   });
 
   it('rejects files that are not backups, damaged JSON, and newer versions', () => {

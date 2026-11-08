@@ -95,7 +95,8 @@ body {
   color: var(--text);
   font-family: var(--ui-font);
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: manual;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -557,10 +558,12 @@ label {
   gap: 2px;
   min-height: 52px;
   padding: 6px 2px;
-  font-size: 0.72rem;
+  /* Labels stay legible but never grow so large that words break inside the tabs. */
+  font-size: min(0.72rem, 13px);
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
+  overflow-wrap: normal;
   border-radius: 10px;
   position: relative;
 }

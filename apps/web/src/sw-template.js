@@ -55,8 +55,15 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() =>
           caches
-            .match(new URL('./index.html', self.registration.scope).href, { ignoreSearch: true })
-            .then((r) => r || caches.match(new URL('./', self.registration.scope).href)),
+            .match(new URL('./index.html', self.registration.scope).href, {
+              ignoreSearch: true,
+              ignoreVary: true,
+            })
+            .then(
+              (r) =>
+                r ||
+                caches.match(new URL('./', self.registration.scope).href, { ignoreVary: true }),
+            ),
         ),
     );
     return;
@@ -64,7 +71,7 @@ self.addEventListener('fetch', (event) => {
 
   // Static assets: cache first (they are content-hashed), then network.
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then(
+    caches.match(req, { ignoreSearch: true, ignoreVary: true }).then(
       (cached) =>
         cached ||
         fetch(req).then((res) => {

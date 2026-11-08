@@ -31,7 +31,7 @@ interface Loaded {
 const FOCUSED_EDGES = ['top', 'bottom', 'left', 'right'] as const;
 
 export function ReadSession({ passageId, documentId, mode }: { passageId?: string; documentId?: string; mode: ReadMode }) {
-  const { store, settings, now, updateSettings } = useApp();
+  const { store, settings, now, updateSettings, refresh } = useApp();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [flowKey, setFlowKey] = useState(0);
@@ -41,12 +41,24 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
     let alive = true;
     (async () => {
       try {
+        // Start (or continue) the session first: it may adjust the part size once, and the
+        // reading must be planned with that size (same order as the web app).
+        const active = await getActiveSession(store);
+        const sessionMode = mode === 'read' ? 'read' : 'remember';
+        let session = active && active.mode === sessionMode ? active : null;
+        let current = settings;
+        if (!session) {
+          const started = await startSession(store, sessionMode, now());
+          session = started.session;
+          current = started.settings;
+          refresh();
+        }
         let document: ReadingDocument | undefined;
         let chunks: ChunkRecord[] = [];
         if (passageId) {
           if (!passage) throw new Error('This reading could not be found. It may have been deleted.');
           if (mode === 'probe' && passage.kind !== 'probe') throw new Error('That is not a fresh-text passage.');
-          const r = await openPassage(store, passage, settings, now());
+          const r = await openPassage(store, passage, current, now());
           document = r.document;
           chunks = r.chunks;
         } else if (documentId) {
@@ -54,11 +66,10 @@ export function ReadSession({ passageId, documentId, mode }: { passageId?: strin
           if (document) chunks = await getDocumentChunks(store, document.id);
         }
         if (!document) throw new Error('This reading could not be found. It may have been deleted.');
-        const active = await getActiveSession(store);
-        const sessionMode = mode === 'read' ? 'read' : 'remember';
-        const session = active && active.mode === sessionMode ? active : (await startSession(store, sessionMode, now())).session;
         if (!alive) return;
-        setLoaded({ session, document, chunks, index: Math.min(document.nextChunkIndex, chunks.length) });
+        // "Help me read" keeps its own position, so it never skips parts to be practised.
+        const position = mode === 'read' ? (document.readNextChunkIndex ?? 0) : document.nextChunkIndex;
+        setLoaded({ session, document, chunks, index: Math.min(position, chunks.length) });
       } catch (e) {
         if (alive) setError((e as Error).message);
       }

@@ -42,8 +42,11 @@ export function decideAdaptation(
 ): AdaptationDecision {
   const { settings } = data;
   const from = currentChunkTarget(settings);
+  // Only parts first read since the last size change count: the same evidence must never
+  // shrink (or grow) the size again in every new session.
+  const since = settings.lastAdaptationAt ? Date.parse(settings.lastAdaptationAt) : -Infinity;
   const recentNew = data.attempts
-    .filter((a) => a.kind === 'learn' && a.firstExposure)
+    .filter((a) => a.kind === 'learn' && a.firstExposure && Date.parse(a.completedAt) > since)
     .sort((a, b) => Date.parse(b.completedAt) - Date.parse(a.completedAt))
     .slice(0, cfg.windowChunks);
 
@@ -149,12 +152,18 @@ export function applyAdaptation(
   settings: Settings,
   decision: AdaptationDecision,
   sessionId: string,
+  now: Date = new Date(),
 ): Settings {
   if (settings.lastAdaptationSessionId === sessionId) return settings;
   if (decision.action !== 'increase' && decision.action !== 'decrease') {
     return { ...settings, lastAdaptationSessionId: sessionId };
   }
-  return { ...settings, adaptiveChunkWords: decision.toWords, lastAdaptationSessionId: sessionId };
+  return {
+    ...settings,
+    adaptiveChunkWords: decision.toWords,
+    lastAdaptationSessionId: sessionId,
+    lastAdaptationAt: now.toISOString(),
+  };
 }
 
 /** "Too much text": reduce immediately, from whichever is smaller — the target or the chunk just shown. */

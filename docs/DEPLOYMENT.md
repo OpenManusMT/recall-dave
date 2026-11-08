@@ -13,7 +13,7 @@ The repository is currently **public**, so GitHub Pages is available at no cost.
 3. When it finishes, the URL is shown on the workflow run (normally `https://openmanusmt.github.io/recall-dave/`).
 4. Open that URL on the iPhone in Safari and follow `docs/IPHONE-INSTALL-AND-TEST.md`.
 
-The workflow (`.github/workflows/deploy-pwa-to-pages.yml`) runs the unit tests, builds `apps/web/dist` and publishes it. It only runs when started by hand.
+The workflow file `.github/workflows/deploy-pages.yml` (shown in Actions as “deploy-pwa-to-pages”) runs the unit tests, builds `apps/web/dist` and publishes it. It only runs when started by hand.
 
 If the repository is made **private**: GitHub Pages for private repositories needs a paid GitHub plan. Use option 2 instead.
 

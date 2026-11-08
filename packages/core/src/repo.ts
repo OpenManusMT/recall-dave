@@ -23,7 +23,7 @@ import { deleteOp, putOp, readSnapshot } from './store';
 import { planAuthoredChunks, planPastedChunks, type PlannedChunk } from './chunker';
 import { currentChunkTarget, normaliseSettings } from './settings';
 import { isDue, scheduleFirstExposure, scheduleReview } from './scheduler';
-import { daysBetween, toISO } from './dates';
+import { calendarDaysBetween, toISO } from './dates';
 import { newId } from './ids';
 import { countWords, sanitiseReadingText, splitParagraphs } from './text';
 import { applyAdaptation, decideAdaptation } from './adaptation';
@@ -131,7 +131,7 @@ export function validatePastedReading(rawTitle: string, rawText: string): PasteV
   if (text.length > MAX_PASTED_CHARS) {
     return {
       ok: false,
-      error: `That text is too long (${text.length.toLocaleString('en-GB')} characters). Please paste up to ${MAX_PASTED_CHARS.toLocaleString('en-GB')} characters at a time.`,
+      error: `That text is too long. Please paste up to ${MAX_PASTED_CHARS.toLocaleString('en-GB')} characters at a time.`,
     };
   }
   if (countWords(text) < 15)
@@ -237,6 +237,7 @@ export async function replanFrom(
       ...doc,
       chunkCount: start + fresh.length,
       nextChunkIndex: Math.min(doc.nextChunkIndex, start + fresh.length),
+      readNextChunkIndex: Math.min(doc.readNextChunkIndex ?? 0, start + fresh.length),
       updatedAt: toISO(now),
     }),
   );
@@ -269,7 +270,7 @@ export async function startSession(
   ]);
   const id = newId('ses');
   const decision = decideAdaptation({ attempts, reviewLog, settings });
-  const nextSettings = applyAdaptation(settings, decision, id);
+  const nextSettings = applyAdaptation(settings, decision, id, now);
   const session: SessionRecord = {
     id,
     startedAt: toISO(now),
@@ -281,8 +282,12 @@ export async function startSession(
     attemptIds: [],
     draft: null,
   };
-  // Close any session left open (e.g. the app was closed mid-session).
-  const open = (await store.getAll('sessions')).filter((s) => s.status === 'active');
+  // Close any session left open (e.g. the app was closed mid-session), carrying its unsaved
+  // draft over so a half-written answer is never silently lost.
+  const open = (await store.getAll('sessions'))
+    .filter((s) => s.status === 'active')
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  session.draft = open[0]?.draft ?? null;
   await store.batch([
     ...open.map((s) =>
       putOp('sessions', { ...s, status: 'finished' as const, endedAt: s.updatedAt, draft: null }),
@@ -400,7 +405,9 @@ export async function recordAttempt(
     .sort()
     .pop();
   const elapsedDays =
-    input.kind === 'review' && lastSeen ? Math.max(0, daysBetween(lastSeen, toISO(now))) : null;
+    input.kind === 'review' && lastSeen
+      ? Math.max(0, calendarDaysBetween(new Date(lastSeen), now))
+      : null;
 
   const attempt: ChunkAttempt = {
     id: input.attemptId,
@@ -466,7 +473,16 @@ export async function recordAttempt(
       ops.push(putOp('memory', upd.state), putOp('reviewLog', log));
     }
   }
-  if (input.kind !== 'review') {
+  if (input.kind === 'read') {
+    // "Help me read" keeps its own position so it never skips parts to be practised.
+    ops.push(
+      putOp('documents', {
+        ...doc,
+        readNextChunkIndex: Math.max(doc.readNextChunkIndex ?? 0, chunk.index + 1),
+        updatedAt: toISO(now),
+      }),
+    );
+  } else if (input.kind !== 'review') {
     const next = Math.max(doc.nextChunkIndex, chunk.index + 1);
     ops.push(
       putOp('documents', {
@@ -582,8 +598,9 @@ export function suggestNextPassage(
   documents: ReadingDocument[],
 ): AuthoredPassage | null {
   const lib = passages.filter((p) => p.kind === 'library');
+  // Any opened-but-unfinished reading is continued before a new one is offered.
   const inProgress = documents
-    .filter((d) => d.provenance === 'sample' && d.status !== 'finished' && d.nextChunkIndex > 0)
+    .filter((d) => d.provenance === 'sample' && d.status !== 'finished')
     .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
   if (inProgress) {
     const p = lib.find((x) => x.id === inProgress.passageId);
@@ -598,6 +615,14 @@ export function suggestNextProbe(
   passages: AuthoredPassage[],
   documents: ReadingDocument[],
 ): AuthoredPassage | null {
-  const used = new Set(documents.filter((d) => d.provenance === 'probe').map((d) => d.passageId));
-  return passages.find((p) => p.kind === 'probe' && !used.has(p.id)) ?? null;
+  const probes = documents.filter((d) => d.provenance === 'probe');
+  const unfinished = probes
+    .filter((d) => d.status !== 'finished')
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
+  if (unfinished) {
+    const p = passages.find((x) => x.id === unfinished.passageId);
+    if (p) return p;
+  }
+  const finished = new Set(probes.filter((d) => d.status === 'finished').map((d) => d.passageId));
+  return passages.find((p) => p.kind === 'probe' && !finished.has(p.id)) ?? null;
 }

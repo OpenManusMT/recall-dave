@@ -83,7 +83,9 @@ export function Home() {
   };
 
   const startSession = () => {
-    if (data.due > 0) navigate('/reviews/run?then=read');
+    // Never discard a half-written answer: continue it first.
+    if (data.active?.draft && data.activeDoc) resume();
+    else if (data.due > 0) navigate('/reviews/run?then=read');
     else if (data.suggestion) navigate(`/read/${data.suggestion.id}`);
     else navigate('/library');
   };
@@ -199,7 +201,15 @@ export function Home() {
               <li key={m.key}>
                 <a className="list-item" href={href('/insights')}>
                   <span className="grow">{m.label}</span>
-                  <strong className={m.value === null ? 'muted' : ''}>{m.display}</strong>
+                  <strong className={m.value === null ? 'muted' : ''}>
+                    {m.display}
+                    {m.value !== null ? (
+                      <span className="small muted" style={{ fontWeight: 400 }}>
+                        {' '}
+                        · {m.n} checks
+                      </span>
+                    ) : null}
+                  </strong>
                 </a>
               </li>
             ))}

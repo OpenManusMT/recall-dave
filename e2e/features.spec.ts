@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { DAY0, DAY1, doChunk, openApp, skipOnboarding } from './helpers';
+import { DAY0, DAY1, doChunk, openApp, skipOnboarding, storedSettings } from './helpers';
 
 async function noHorizontalOverflow(page: Page) {
   const { sw, cw } = await page.evaluate(() => ({
@@ -37,6 +37,7 @@ test.describe('onboarding and settings', () => {
     );
     await page.getByRole('radio', { name: 'Dark' }).click();
     await page.getByLabel('High contrast').check();
+    await expect.poll(async () => (await storedSettings(page))?.highContrast).toBe(true);
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(page.locator('html')).toHaveAttribute('data-contrast', 'high');
@@ -224,8 +225,7 @@ test.describe('your data', () => {
 
     await page.getByRole('button', { name: 'Delete all data' }).click();
     await page.getByRole('button', { name: 'Delete everything' }).click();
-    await expect(page.getByRole('heading', { name: 'Welcome to Recall' })).toBeVisible();
-    await page.getByRole('button', { name: 'Skip and start' }).click();
+    await skipOnboarding(page);
     await page.goto(`./?now=${DAY1}#/`);
     await expect(page.getByText('Nothing to review yet.')).toBeVisible();
 

@@ -136,7 +136,8 @@ export function computeInsights(
     )
     .map((r) => independentCredit(r.outcome, r.clueLevel));
   const clue = practisedAll.flatMap((a) => a.ideas.map((i) => (i.clueLevel >= 1 ? 1 : 0)));
-  const comp = practisedAll.filter((a) => a.question).map((a) => (a.question?.correct ? 1 : 0));
+  // First answer to each question only: reviews may repeat a question already explained.
+  const comp = practisedLearn.filter((a) => a.question).map((a) => (a.question?.correct ? 1 : 0));
 
   const freshImmediate = probes.flatMap((a) =>
     a.ideas.map((i) => independentCredit(i.outcome, i.clueLevel)),

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   cueText,
+  describeDue,
   initialLadder,
   ladderFeedback,
   ladderReducer,
@@ -54,7 +55,8 @@ const LEVEL_LABEL: Record<ClueLevel, string> = {
 
 function pickQuestion(kind: AttemptKind, chunk: ChunkRecord): QuestionSnapshot | null {
   if (chunk.questions.length === 0) return null;
-  if (kind === 'review') return chunk.questions[1] ?? chunk.questions[0] ?? null;
+  // Reviews only ask a question that has not already been answered and explained.
+  if (kind === 'review') return chunk.questions[1] ?? null;
   return chunk.questions[0] ?? null;
 }
 
@@ -75,13 +77,31 @@ export function ChunkFlow(props: ChunkFlowProps) {
   const [speaking, setSpeaking] = useState(false);
   const [tooMuch, setTooMuch] = useState(false);
   const [tooMuchNote, setTooMuchNote] = useState<string | null>(null);
-  const question = settings.askQuestions || kind === 'read' ? pickQuestion(kind, chunk) : null;
+  // A resumed answer that had already reached the question may have seen the answer: don't re-ask.
+  const pastQuestion = Boolean(
+    resumable && (props.draft?.phase === 'question' || props.draft?.phase === 'check'),
+  );
+  const question = settings.askQuestions && !pastQuestion ? pickQuestion(kind, chunk) : null;
   const [answer, setAnswer] = useState<number | null>(null);
   const [ideaIndex, setIdeaIndex] = useState(0);
   const [ladders, setLadders] = useState<LadderState[]>(() => ideas.map(() => initialLadder()));
   const [outcome, setOutcome] = useState<AttemptOutcome | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const headingRef = useFocusOnChange<HTMLHeadingElement>(`${phase}:${ideaIndex}`);
+
+  // Double-tap guard: for a moment after each step change the new step ignores pointer input,
+  // so a second tap meant for the previous button cannot land on the next one. Keyboard input
+  // is unaffected.
+  const current = ladders[Math.min(ideaIndex, Math.max(0, ladders.length - 1))];
+  const stepKey = `${phase}:${ideaIndex}:${current?.phase ?? ''}:${current?.cueLevel ?? ''}:${answer ?? ''}`;
+  // Derived during render, so the very first paint of a new step is already guarded.
+  const [armedKey, setArmedKey] = useState<string | null>(null);
+  const armed = armedKey === stepKey;
+  useEffect(() => {
+    const t = setTimeout(() => setArmedKey(stepKey), 350);
+    return () => clearTimeout(t);
+  }, [stepKey]);
+  const guardStyle = armed ? undefined : ({ pointerEvents: 'none' } as const);
 
   useEffect(() => () => stopSpeaking(), []);
 
@@ -209,7 +229,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
   if (phase === 'reading') {
     const readMode = kind === 'read';
     return (
-      <section className="stack-lg" aria-labelledby="chunk-heading">
+      <section style={guardStyle} className="stack-lg" aria-labelledby="chunk-heading">
         {header}
         <h1 id="chunk-heading" ref={headingRef} tabIndex={-1}>
           {readMode ? 'Read this part' : 'Read this part, then hide it'}
@@ -295,7 +315,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
   if (phase === 'recall') {
     const isReview = kind === 'review';
     return (
-      <section className="stack-lg" aria-labelledby="recall-heading">
+      <section style={guardStyle} className="stack-lg" aria-labelledby="recall-heading">
         {header}
         <h1 id="recall-heading" ref={headingRef} tabIndex={-1}>
           {isReview ? 'What do you remember from this part?' : 'What do you remember?'}
@@ -304,7 +324,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
           <p className="muted">
             Before looking: write the{' '}
             {ideas.length === 1 ? 'main point' : `${ideas.length} main points`} you remember from “
-            {doc.title}”. There is no time limit.
+            {doc.title}”, part {chunk.index + 1}. There is no time limit.
           </p>
         ) : (
           <p className="muted">
@@ -318,11 +338,17 @@ export function ChunkFlow(props: ChunkFlowProps) {
             id="recall-box"
             value={recallText}
             onChange={(e) => setRecallText(e.target.value.slice(0, 4000))}
+            maxLength={4000}
             placeholder="Type here…"
             autoCapitalize="sentences"
             spellCheck
             aria-describedby="recall-help"
           />
+          {recallText.length > 3500 ? (
+            <p className="small muted" role="status">
+              {4000 - recallText.length} characters left.
+            </p>
+          ) : null}
           <p id="recall-help" className="small muted">
             {settings.inputPreference === 'dictation'
               ? 'To speak instead of typing, tap the microphone on your keyboard. Check the words before you continue.'
@@ -362,7 +388,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
   if (phase === 'question' && question) {
     const answered = answer !== null;
     return (
-      <section className="stack-lg" aria-labelledby="q-heading">
+      <section style={guardStyle} className="stack-lg" aria-labelledby="q-heading">
         {header}
         <h1 id="q-heading" ref={headingRef} tabIndex={-1}>
           A quick question
@@ -393,7 +419,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
     const idea = ideas[k] as KeyIdeaSnapshot;
     const state = ladders[k] as LadderState;
     return (
-      <section className="stack-lg" aria-labelledby="check-heading">
+      <section style={guardStyle} className="stack-lg" aria-labelledby="check-heading">
         {header}
         <h1 id="check-heading" ref={headingRef} tabIndex={-1}>
           Check point {k + 1} of {ideas.length}
@@ -404,7 +430,14 @@ export function ChunkFlow(props: ChunkFlowProps) {
             {recallText.trim() || '(nothing yet — that’s fine)'}
           </p>
         </details>
+        {kind === 'review' && ideas.length < chunk.ideas.length ? (
+          <p className="small muted" style={{ margin: 0 }}>
+            Only the {ideas.length === 1 ? 'point' : 'points'} due today{' '}
+            {ideas.length === 1 ? 'is' : 'are'} checked here.
+          </p>
+        ) : null}
         <IdeaLadder
+          hasAnswer={recallText.trim().length > 0}
           idea={idea}
           state={state}
           chunkText={chunk.text}
@@ -437,7 +470,7 @@ export function ChunkFlow(props: ChunkFlowProps) {
   // ------------------------------------------------------------------- saving
   if (phase === 'saving') {
     return (
-      <section className="stack-lg" aria-busy={!saveError}>
+      <section style={guardStyle} className="stack-lg" aria-busy={!saveError}>
         {header}
         {saveError ? (
           <div className="stack">
@@ -462,6 +495,15 @@ export function ChunkFlow(props: ChunkFlowProps) {
   if (phase === 'done' && outcome) {
     return (
       <DoneSummary
+        style={guardStyle}
+        nextDue={
+          outcome.states.length
+            ? describeDue(
+                outcome.states.map((st) => st.authoritativeNextAt).sort()[0] as string,
+                now(),
+              )
+            : null
+        }
         headingRef={headingRef}
         kind={kind}
         ideas={ideas}
@@ -545,11 +587,13 @@ function QuestionBlock({
 }
 
 function IdeaLadder({
+  hasAnswer,
   idea,
   state,
   chunkText,
   onAction,
 }: {
+  hasAnswer: boolean;
   idea: KeyIdeaSnapshot;
   state: LadderState;
   chunkText: string;
@@ -567,6 +611,35 @@ function IdeaLadder({
       </div>
     </div>
   );
+
+  if (state.phase === 'ask' && !hasAnswer) {
+    // Nothing was written, so "I wrote about it" cannot be offered (it would credit unaided recall).
+    return (
+      <div className="stack" aria-live="polite">
+        <div className="cue">
+          <span className="cue-label">{LEVEL_LABEL[1]}</span>
+          {idea.cues.structural}
+        </div>
+        <p style={{ fontWeight: 600 }}>Does that bring anything back?</p>
+        <div className="stack">
+          <button
+            type="button"
+            className="btn good block"
+            onClick={() => onAction({ type: 'remember_now' })}
+          >
+            I remember it now — show me
+          </button>
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={() => onAction({ type: 'covered', answer: 'no' })}
+          >
+            Not yet — give me a hint
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (state.phase === 'ask') {
     return (
@@ -724,6 +797,8 @@ function IdeaLadder({
 }
 
 function DoneSummary({
+  style,
+  nextDue,
   headingRef,
   kind,
   ideas,
@@ -732,6 +807,8 @@ function DoneSummary({
   answer,
   actions,
 }: {
+  style: React.CSSProperties | undefined;
+  nextDue: string | null;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
   kind: AttemptKind;
   ideas: KeyIdeaSnapshot[];
@@ -751,12 +828,16 @@ function DoneSummary({
       return ideas.length === 1
         ? 'You remembered the main point on your own.'
         : `You remembered all ${ideas.length} points on your own.`;
+    if (kind === 'probe')
+      return own > 0
+        ? `You remembered ${own} of ${ideas.length} points on your own.`
+        : 'Thank you. That was a fresh passage, so it was a real challenge.';
     if (own > 0)
       return `You remembered ${own} of ${ideas.length} points on your own. The others will come back in a review.`;
     return 'Well done for working through it. These points will come back in a review, which is how they stick.';
   }, [kind, ideas.length, own]);
   return (
-    <section className="stack-lg" aria-labelledby="done-heading">
+    <section style={style} className="stack-lg" aria-labelledby="done-heading">
       <h1 id="done-heading" ref={headingRef} tabIndex={-1}>
         {message}
       </h1>
@@ -769,10 +850,15 @@ function DoneSummary({
           {answer === question.answerIndex ? 'answered correctly.' : 'now you know the answer.'}
         </p>
       ) : null}
-      {kind === 'learn' ? (
+      {(kind === 'learn' || kind === 'review') && nextDue ? (
         <p className="muted">
-          These points are saved. You’ll see them again tomorrow under Reviews.
+          {kind === 'learn'
+            ? `These points are saved. You’ll see them again ${nextDue} under Reviews.`
+            : `Saved. The next review of these points is ${nextDue}.`}
         </p>
+      ) : null}
+      {kind === 'probe' ? (
+        <p className="muted">Fresh-text checks are not reviewed later, so they stay fresh.</p>
       ) : null}
       <div className="stack">{actions}</div>
     </section>

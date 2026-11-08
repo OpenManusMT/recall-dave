@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS: Settings = {
   schedulerMode: 'shadow',
   experimentalScorer: false,
   lastAdaptationSessionId: null,
+  lastAdaptationAt: null,
   lastBackupAt: null,
 };
 
@@ -65,6 +66,10 @@ export function normaliseSettings(raw: Partial<Settings> | undefined | null): Se
     experimentalScorer: Boolean(s.experimentalScorer),
     lastAdaptationSessionId:
       typeof s.lastAdaptationSessionId === 'string' ? s.lastAdaptationSessionId : null,
+    lastAdaptationAt:
+      typeof s.lastAdaptationAt === 'string' && !Number.isNaN(Date.parse(s.lastAdaptationAt))
+        ? s.lastAdaptationAt
+        : null,
     lastBackupAt:
       typeof s.lastBackupAt === 'string' && !Number.isNaN(Date.parse(s.lastBackupAt))
         ? s.lastBackupAt

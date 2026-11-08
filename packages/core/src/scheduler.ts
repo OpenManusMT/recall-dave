@@ -17,7 +17,7 @@
  * These are engineering defaults, not clinically validated intervals.
  */
 import type { ClueLevel, FsrsState, Grade, IdeaOutcome, MemoryState } from './types';
-import { daysBetween, dueDayStart, toISO } from './dates';
+import { calendarDaysBetween, daysBetween, dueDayStart, toISO } from './dates';
 
 export const FALLBACK_INTERVALS_DAYS: readonly number[] = [1, 3, 7, 14, 30, 60, 120];
 
@@ -204,7 +204,9 @@ export function scheduleReview(
   clueLevel: ClueLevel,
   now: Date,
 ): ScheduleUpdate {
-  const elapsed = Math.max(0, daysBetween(prev.lastReviewAt, toISO(now)));
+  // Elapsed time is counted in local calendar days, matching due dates (which fall at local
+  // midnight): an evening reading reviewed the next morning counts as next-day (1), not 0.46.
+  const elapsed = Math.max(0, calendarDaysBetween(new Date(prev.lastReviewAt), now));
   const grade = mapGrade(outcome, clueLevel, elapsed);
   const sameDay = elapsed < 1;
   // Same-day re-practice does not advance the authoritative schedule either.

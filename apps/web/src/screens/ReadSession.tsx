@@ -37,7 +37,7 @@ export function ReadSession({
   documentId?: string;
   mode: ReadMode;
 }) {
-  const { store, settings, now, updateSettings } = useApp();
+  const { store, settings, now, updateSettings, adoptSettings } = useApp();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [flowKey, setFlowKey] = useState(0);
@@ -47,12 +47,24 @@ export function ReadSession({
     let alive = true;
     (async () => {
       try {
+        // Start (or continue) the session first: it may adjust the part size once, and the
+        // reading must be planned with that size.
+        const active = await getActiveSession(store);
+        const sessionMode = mode === 'read' ? 'read' : 'remember';
+        let session = active && active.mode === sessionMode ? active : null;
+        let current = settings;
+        if (!session) {
+          const started = await startSession(store, sessionMode, now());
+          session = started.session;
+          current = started.settings;
+          adoptSettings(started.settings);
+        }
         let document: ReadingDocument | undefined;
         let chunks: ChunkRecord[] = [];
         if (passage) {
           if (mode === 'probe' && passage.kind !== 'probe')
             throw new Error('That is not a fresh-text passage.');
-          const r = await openPassage(store, passage, settings, now());
+          const r = await openPassage(store, passage, current, now());
           document = r.document;
           chunks = r.chunks;
         } else if (documentId) {
@@ -67,19 +79,10 @@ export function ReadSession({
         }
         if (!document)
           throw new Error('This reading could not be found. It may have been deleted.');
-        const active = await getActiveSession(store);
-        const sessionMode = mode === 'read' ? 'read' : 'remember';
-        const session =
-          active && active.mode === sessionMode
-            ? active
-            : (await startSession(store, sessionMode, now())).session;
         if (!alive) return;
-        setLoaded({
-          session,
-          document,
-          chunks,
-          index: Math.min(document.nextChunkIndex, chunks.length),
-        });
+        const position =
+          mode === 'read' ? (document.readNextChunkIndex ?? 0) : document.nextChunkIndex;
+        setLoaded({ session, document, chunks, index: Math.min(position, chunks.length) });
       } catch (e) {
         if (alive) setError((e as Error).message);
       }
@@ -96,8 +99,11 @@ export function ReadSession({
     const chunk = loaded.chunks[loaded.index];
     if (!chunk) return null;
     const target = tooMuchTarget(settings, chunk.wordCount);
+    const changedAt = now().toISOString();
     const patch =
-      settings.chunkMode === 'fixed' ? { fixedChunkWords: target } : { adaptiveChunkWords: target };
+      settings.chunkMode === 'fixed'
+        ? { fixedChunkWords: target, lastAdaptationAt: changedAt }
+        : { adaptiveChunkWords: target, lastAdaptationAt: changedAt };
     await updateSettings(patch);
     const replanned = await replanFrom(
       store,
@@ -137,7 +143,27 @@ export function ReadSession({
       <div className="stack-lg">
         <TopBar back="/library" backLabel="Library" />
         <h1>You have finished “{document.title}”</h1>
-        <p className="muted">Its points will come back under Reviews when they are due.</p>
+        <p className="muted">
+          {mode === 'read'
+            ? '“Help me read” does not set up reviews. To practise remembering this piece, open it with “Help me remember”.'
+            : mode === 'probe'
+              ? 'Fresh-text checks are not reviewed later, so they stay a fair check of new reading.'
+              : 'Its points will come back under Reviews when they are due.'}
+        </p>
+        {mode === 'read' ? (
+          <button
+            type="button"
+            className="btn secondary block"
+            onClick={async () => {
+              const fresh = { ...document, readNextChunkIndex: 0, updatedAt: now().toISOString() };
+              await store.batch([{ type: 'put', collection: 'documents', value: fresh }]);
+              setLoaded({ ...loaded, document: fresh, index: 0 });
+              setFlowKey((k) => k + 1);
+            }}
+          >
+            Read it again from the start
+          </button>
+        ) : null}
         <button type="button" className="btn primary block large" onClick={() => void finish()}>
           Finish
         </button>
