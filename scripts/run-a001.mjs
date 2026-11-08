@@ -1,0 +1,111 @@
+// A001 + holdout + adversarial evaluation of the Recall candidate scorer.
+//
+// 1. Verifies the original pack is byte-identical to its MANIFEST and the holdout is frozen.
+// 2. Runs the ORIGINAL harness unit tests, oracle check and lexical baseline (unchanged files).
+// 3. Runs the candidate scorer 5 times over every case of A001 (500 predictions), the frozen
+//    holdout (200) and the adversarial set (90), evaluates each with the ORIGINAL evaluate.py,
+//    and writes predictions + reports + SUMMARY.md to tests/a001/results/.
+//
+// Exit code is 0 when everything EXECUTED (a gate FAIL is a recorded result, not a crash),
+// and non-zero if integrity checks fail or anything could not run.
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const harness = resolve(root, 'spec-source/Read-Remember-Codex-Pack-v0.2/A001-harness');
+const a001 = resolve(root, 'tests/a001');
+const out = resolve(a001, 'results');
+mkdirSync(out, { recursive: true });
+const py = process.platform === 'win32' ? 'python' : 'python3';
+const env = { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: a001, PYTHONIOENCODING: 'utf-8' };
+
+function run(cmd, args, opts = {}) {
+  const r = spawnSync(cmd, args, { cwd: root, env, encoding: 'utf-8', shell: process.platform === 'win32' && cmd === 'npx', ...opts });
+  if (r.error) throw r.error;
+  return r;
+}
+function must(r, what) {
+  if (r.status !== 0) {
+    console.error(`✗ ${what} failed\n${r.stdout}\n${r.stderr}`);
+    process.exit(1);
+  }
+  return r;
+}
+
+console.log('• Integrity: original pack checksums, frozen holdout, adapter isolation');
+const guard = must(run(py, ['-m', 'unittest', '-v', resolve(a001, 'test_adapter.py')]), 'integrity/adapter tests');
+writeFileSync(resolve(out, 'integrity-tests.txt'), guard.stderr + guard.stdout);
+
+console.log('• Original harness unit tests');
+const ut = must(run(py, ['-m', 'unittest', 'discover', '-s', 'tests', '-v'], { cwd: harness }), 'original harness unit tests');
+writeFileSync(resolve(out, 'harness-unittests.txt'), ut.stderr + ut.stdout);
+
+console.log('• Building candidate scorer bundle');
+must(run('npx', ['vite', 'build', '--config', 'tests/a001/vite.scorer.config.mts']), 'scorer bundle build');
+
+const evaluate = (cases, preds, report) =>
+  must(run(py, [resolve(harness, 'evaluate.py'), '--cases', cases, '--predictions', preds, '--out', report]), `evaluate ${report}`);
+const runScorer = (scorer, cases, preds) =>
+  must(run(py, [resolve(harness, 'run_scorer.py'), '--scorer', scorer, '--cases', cases, '--runs', '5', '--out', preds]), `run ${scorer}`);
+
+const A001 = resolve(harness, 'cases.jsonl');
+const HOLD = resolve(a001, 'holdout/holdout_cases.jsonl');
+const ADV = resolve(a001, 'holdout/adversarial_cases.jsonl');
+
+console.log('• Oracle (harness mechanics only)');
+evaluate(A001, resolve(harness, 'oracle_predictions.jsonl'), resolve(out, 'A001_ORACLE_REPORT.json'));
+for (const [name, file] of [['HOLDOUT', HOLD], ['ADVERSARIAL', ADV]]) {
+  must(run(py, [resolve(harness, 'make_oracle_predictions.py'), '--cases', file, '--runs', '5', '--out', resolve(out, `${name}_oracle_predictions.jsonl`)]), 'oracle predictions');
+  evaluate(file, resolve(out, `${name}_oracle_predictions.jsonl`), resolve(out, `${name}_ORACLE_REPORT.json`));
+}
+
+console.log('• Lexical baseline (original, deliberately weak)');
+runScorer('baseline_scorer:score_case', A001, resolve(out, 'A001_baseline_predictions.jsonl'));
+evaluate(A001, resolve(out, 'A001_baseline_predictions.jsonl'), resolve(out, 'A001_BASELINE_REPORT.json'));
+
+const reports = {};
+for (const [name, file] of [['A001', A001], ['HOLDOUT', HOLD], ['ADVERSARIAL', ADV]]) {
+  console.log(`• Candidate scorer × 5 runs on ${name}`);
+  const preds = resolve(out, `${name}_candidate_predictions.jsonl`);
+  runScorer('recall_adapter:score_case', file, preds);
+  evaluate(file, preds, resolve(out, `${name}_CANDIDATE_REPORT.json`));
+  reports[name] = JSON.parse(readFileSync(resolve(out, `${name}_CANDIDATE_REPORT.json`), 'utf-8'));
+}
+const base = JSON.parse(readFileSync(resolve(out, 'A001_BASELINE_REPORT.json'), 'utf-8'));
+const oracle = JSON.parse(readFileSync(resolve(out, 'A001_ORACLE_REPORT.json'), 'utf-8'));
+
+const pct = (x) => `${(x * 100).toFixed(1)}%`;
+const row = (label, r) =>
+  `| ${label} | ${r.gate} | ${r.predictions_evaluated} | ${pct(r.exact_label_action_rate)} | ${pct(r.score_in_expected_range_rate)} | ${pct(r.clue_exact_rate)} | ${pct(r.clue_within_1_rate)} | ${pct(Math.min(...Object.values(r.per_category_exact_rate)))} | ${r.safety_failures.length} | ${pct(r.consistency_rate)} |`;
+const cats = (r) => Object.entries(r.per_category_exact_rate).map(([k, v]) => `${k} ${pct(v)}`).join(', ');
+const md = `# A001 scorer evaluation — generated by \`npm run a001\`
+
+Generated: ${new Date().toISOString()}
+
+Thresholds (unchanged, from the original evaluate.py): label+action ≥ 92%, score in range ≥ 90%, clue exact ≥ 80%, clue ±1 ≥ 95%, every category ≥ 80%, 0 safety failures, 5 runs per case, consistency ≥ 98%.
+
+| Run | Gate | Predictions | Label+action | Score in range | Clue exact | Clue ±1 | Worst category | Safety failures | Consistency |
+|---|---|---|---|---|---|---|---|---|---|
+${row('A001 oracle (answer key — harness check only, NOT a scorer)', oracle)}
+${row('A001 lexical baseline (original)', base)}
+${row('A001 candidate (DEVELOPMENT set — scorer was tuned on it)', reports.A001)}
+${row('Holdout candidate (frozen before scorer existed)', reports.HOLDOUT)}
+${row('Adversarial candidate (frozen before scorer existed)', reports.ADVERSARIAL)}
+
+Per-category label+action:
+- A001 candidate: ${cats(reports.A001)}
+- Holdout candidate: ${cats(reports.HOLDOUT)}
+- Adversarial candidate: ${cats(reports.ADVERSARIAL)}
+
+**Decision:** production_schedule_allowed = **${reports.A001.production_schedule_allowed && reports.HOLDOUT.production_schedule_allowed}**.
+${reports.A001.production_schedule_allowed && reports.HOLDOUT.production_schedule_allowed ? '' : 'The candidate scorer stays EXPERIMENTAL/DISABLED in the app and the adaptive scheduler stays in shadow mode.'}
+
+Notes:
+- The adapter forwards only source text, key ideas and transcript (tests/a001/test_adapter.py proves no ids, tags, expected answers or confirmed ASR text reach the scorer).
+- A001 clue levels for partial/wrong/contradiction cases follow source position, not content (docs/evidence/a001/clue-level-artefact-analysis.txt), so the clue thresholds cannot be met by a content-based scorer without exploiting ids, which this project refuses to do.
+- Safety failures in full: see the *_CANDIDATE_REPORT.json files.
+`;
+writeFileSync(resolve(out, 'SUMMARY.md'), md);
+console.log(md);

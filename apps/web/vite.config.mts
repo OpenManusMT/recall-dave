@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
-const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as { version: string };
+const pkg = JSON.parse(readFileSync(resolve(import.meta.dirname, 'package.json'), 'utf8')) as { version: string };
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
@@ -37,7 +37,7 @@ function serviceWorker(): Plugin {
       }
       const version = h.digest('hex').slice(0, 16);
       const precache = ['./', ...files.map((f) => `./${f}`)];
-      const tpl = readFileSync(resolve(__dirname, 'src/sw-template.js'), 'utf8');
+      const tpl = readFileSync(resolve(import.meta.dirname, 'src/sw-template.js'), 'utf8');
       const sw = tpl.replace('__CACHE_VERSION__', version).replace('__PRECACHE_LIST__', JSON.stringify(precache, null, 2));
       writeFileSync(join(outDir, 'sw.js'), sw);
       writeFileSync(

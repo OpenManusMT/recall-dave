@@ -16,3 +16,4 @@ export * from './store';
 export * from './sqlite-store';
 export * from './repo';
 export * from './backup';
+export * from './scorer';
